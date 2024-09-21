@@ -267,3 +267,5 @@ Completed tasks: 1
 Pending tasks: 2
 
 ```
+
+[Далее ...](fapi/readme_fastapi.md)

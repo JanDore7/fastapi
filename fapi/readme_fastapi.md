@@ -332,3 +332,130 @@ async def delete_item(item_id: int):
     DELETE: Удаление элемента — DELETE /items/42.
 
 Документацию можно увидеть, запустив FastAPI и перейдя по адресу http://127.0.0.1:8000/docs.
+
+
+***Параметры декораторов (@app.get, @app.post, @app.put, и т.д.):***
+
+**path**:  
+        Тип: str  
+        Описание: Путь URL, по которому будет доступен эндпоинт.  
+        Пример: @app.get("/items/{item_id}")    
+**tags**:  
+        Тип: List[str]  
+        Описание: Список строк для группировки эндпоинтов в документации. Эти теги помогают структурировать вашу документацию, разделяя эндпоинты по категориям.  
+        Пример: @app.get("/items/", tags=["items"])  
+**summary**:  
+        Тип: str  
+        Описание: Краткое описание эндпоинта, отображаемое в документации.
+        Пример: @app.get("/items/", summary="Retrieve a list of items")    
+**description**:    
+        Тип: str  
+        Описание: Полное описание эндпоинта, отображаемое в Swagger UI и ReDoc. Это поле может быть длинным и описывать цель и поведение эндпоинта.  
+        Пример: @app.get("/items/", description="Retrieve a list of all items from the database.")    
+**response_model**:    
+        Тип: Pydantic-модель  
+        Описание: Модель данных, описывающая структуру ответа. FastAPI автоматически конвертирует и валидирует данные перед отправкой клиенту, исходя из этой модели.  
+        Пример:  
+```
+    class Item(BaseModel):
+        name: str
+        price: float
+
+    @app.get("/items/", response_model=Item)
+    async def get_items():
+        return {"name": "Sample Item", "price": 10.0}
+```
+
+**response_model_exclude_unset**:  
+Тип: bool   
+    Описание: Исключает поля, которые не были установлены явно (если используется Pydantic-модель для ответа). Это может быть полезно, если вы не хотите отправлять значения по умолчанию.  
+    Пример: @app.get("/items/", response_model_exclude_unset=True)  
+
+**status_code**:  
+Тип: int  
+    Описание: HTTP-код состояния по умолчанию, возвращаемый эндпоинтом. Например, для успешных POST-запросов часто используется код 201 Created.  
+    Пример: @app.post("/items/", status_code=201)  
+
+**response_class**:  
+Тип: Класс ответа  
+    Описание: Указывает класс, используемый для отправки ответа (например, JSONResponse, HTMLResponse, PlainTextResponse). По умолчанию FastAPI использует JSONResponse.  
+    Пример:  
+```
+    from fastapi.responses import HTMLResponse
+
+    @app.get("/items/", response_class=HTMLResponse)
+    async def get_items():
+        return "<h1>Item List</h1>"
+```
+
+**response_description**:  
+Тип: str  
+    Описание: Описание тела ответа для документации OpenAPI. Обычно используется, чтобы описать, что означает успешный ответ.  
+    Пример: @app.get("/items/", response_description="List of items successfully retrieved")  
+
+**responses**:  
+Тип: Dict[int, Dict[str, Any]]  
+    Описание: Словарь, описывающий возможные HTTP-ответы для эндпоинта. Ключи — это коды состояния HTTP, а значения — это дополнительные описания или примеры.  
+    Пример:  
+```
+    @app.get("/items/", responses={404: {"description": "Item not found"}})
+    async def get_items(item_id: int):
+        return {"item_id": item_id}
+```
+**deprecated**:  
+Тип: bool  
+    Описание: Помечает эндпоинт как устаревший. В Swagger UI и ReDoc это будет отмечено специальным значком.  
+    Пример: @app.get("/old-items/", deprecated=True)  
+
+**include_in_schema**:  
+Тип: bool  
+    Описание: Определяет, включать ли эндпоинт в документацию (Swagger UI, ReDoc и схему OpenAPI). Если установлено в False, эндпоинт будет доступен для запросов, но не будет отображаться в документации.  
+    Пример:  
+```
+        @app.get("/internal-items/", include_in_schema=False)
+        async def get_internal_items():
+            return {"item_id": "internal"}
+```
+
+**name**:  
+        Тип: str  
+        Описание: Человеко-читаемое имя для эндпоинта, которое можно использовать для внутренних целей (например, для ссылок в коде).  
+        Пример: @app.get("/items/", name="get_items_endpoint")  
+
+Пример использования всех параметров:  
+```
+from fastapi import FastAPI
+from pydantic import BaseModel
+from fastapi.responses import JSONResponse
+
+app = FastAPI()
+
+class Item(BaseModel):
+    name: str
+    price: float
+
+@app.get("/items/{item_id}", 
+         tags=["items"], 
+         summary="Get an item by ID", 
+         description="Retrieve a specific item by its unique ID from the database.", 
+         response_model=Item, 
+         status_code=200, 
+         response_description="Item successfully retrieved",
+         response_class=JSONResponse, 
+         responses={404: {"description": "Item not found"}},
+         deprecated=False,
+         include_in_schema=True,
+         name="get_item_by_id")
+async def get_item(item_id: int):
+    return {"name": "Sample Item", "price": 20.0}
+```
+Что происходит в этом примере:
+Эндпоинт доступен по пути /items/{item_id}.  
+У него есть теги для группировки ("items").  
+Он возвращает JSON-ответ с моделью Item.  
+У него есть краткое описание (summary) и полное описание (description).  
+Он возвращает HTTP-код 200 при успехе и код 404, если элемент не найден.  
+Этот эндпоинт включен в документацию (include_in_schema=True).  
+Имя эндпоинта внутри кода будет get_item_by_id.  
+
+Все эти параметры позволяют детально настраивать как само поведение эндпоинтов, так и их представление в документации.

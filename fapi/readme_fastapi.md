@@ -155,149 +155,131 @@ add(по умолчанию None).
 таким как **GET, POST, PUT, DELETE** и т.д.
 Основные HTTP-методы и их использование в FastAPI:
 
-**GET**: Используется для получения данных с сервера. Например, если вы хотите запросить список объектов (например, товаров, пользователей), то вы используете GET.
-*Пример:*
-```
-    @app.get("/items/{item_id}")
-    async def read_item(item_id: int):
-        return {"item_id": item_id}
-```
-В этом примере по пути **/items/{item_id}** можно сделать запрос для получения элемента по его id.
-Пример запроса:  
-**GET /items/42.**
 
-**POST**: Используется для создания нового ресурса. Когда вы хотите отправить данные на сервер, чтобы создать новый объект (например, создать пользователя или товар), используйте POST.
-*Пример:*
-```
-from pydantic import BaseModel
+Неотъемлемой частью работы с эндпоинтами являются данные передаваемые в запросе.
 
-class Item(BaseModel):
-    name: str
-    description: str = None
-    price: float
-    tax: float = None
+***Quryset*** - (иногда его называют QuerySet) — это специальный класс, 
+предоставляемый FastAPI для работы с параметрами запроса (
+query parameters) в ваших маршрутах. 
+Query parameters используются для передачи данных через URL. 
+В FastAPI они удобны для работы с опциональными и обязательными 
+значениями, с типами по умолчанию и валидацией.
 
-@app.post("/items/")
-async def create_item(item: Item):
-    return item
-```
-В этом примере можно отправить данные для создания нового элемента через POST /items/.
-Пример запроса:   
-**POST /items/** с JSON-данными тела запроса:
-```
-    json
+***Аргументы Query***
 
-        {
-          "name": "Item Name",
-          "price": 100.5
-        }
-```
+**default**: Значение по умолчанию.  
+q: str = Query("default_value")  
+Если параметр не передан, будет использоваться значение "default_value".  
 
-**PUT**: Используется для обновления существующего ресурса. Полная замена данных объекта.
-*Пример:*
-```
-    @app.put("/items/{item_id}")
-    async def update_item(item_id: int, item: Item):
-        return {"item_id": item_id, **item.dict()}
-```
-В этом примере вы можете обновить существующий элемент с указанным item_id через PUT /items/{item_id}.
-Пример запроса:  
-**PUT /items/42** с JSON-данными для обновления.
+**min_length и max_length**: Ограничения на минимальную и максимальную длину строки.  
+q: str = Query(None, min_length=3, max_length=50)  
+Значение параметра должно быть строкой длиной от 3 до 50 символов.  
 
-**PATCH**: Используется для частичного обновления ресурса. В отличие от PUT, он не заменяет весь объект, а только обновляет переданные поля.
-*Пример:*
-```
-    @app.patch("/items/{item_id}")
-    async def update_partial_item(item_id: int, item: Item):
-        return {"item_id": item_id, **item.dict()}
-```
-Пример запроса:  
-**PATCH /items/42** с изменёнными полями в JSON (например, только цена).
+**regex**: Регулярное выражение для валидации.  
+q: str = Query(None, regex="^fixedpattern$")  
+Этот параметр должен соответствовать регулярному выражению ^fixedpattern$.  
 
-**DELETE**: Используется для удаления ресурса с сервера.
-*Пример:*
-```
-    @app.delete("/items/{item_id}")
-    async def delete_item(item_id: int):
-        return {"msg": f"Item {item_id} deleted"}
-```
-В этом примере элемент с указанным item_id удаляется через DELETE /items/{item_id}.
-Пример запроса:   
-**DELETE /items/42.**
+**alias**: Альтернативное имя для параметра.  
+q: str = Query(None, alias="item-query")  
+В запросе параметр должен называться item-query: /items/?item-query=some-query  
 
-**OPTIONS**: Используется для получения информации о параметрах взаимодействия с ресурсом (например, какие методы поддерживаются).
-*Пример:*
-```
-    @app.options("/items/")
-    async def options_item():
-        return {"methods": ["GET", "POST", "OPTIONS"]}
-```
+**description**: Описание параметра, полезно для генерации документации.  
+q: str = Query(None, description="Это параметр запроса для поиска")  
+Описание появится в Swagger UI.  
 
-**HEAD**: Похож на **GET**, но возвращает только заголовки, 
-без тела ответа.  
-*Пример:*
-```
-        @app.head("/items/")
-        async def head_items():
-            return
-```
+**deprecated**: Пометка параметра как устаревшего.  
+q: str = Query(None, deprecated=True)  
+Swagger UI покажет, что этот параметр устарел, но его можно продолжать использовать.  
 
-Параметры для настройки эндпоинтов.  
-Каждый метод-декоратор (@app.get, @app.post и т.д.) поддерживает несколько полезных параметров:
 
-**path**: Путь URL, по которому будет доступен эндпоинт.
-Например, @app.get("/items/{item_id}").  
-**tags**: Список строк для группировки эндпоинтов в документации.  
-*Пример:*
-```
-    @app.get("/items/", tags=["items"])
-    async def get_items():
-        return [{"item_id": "foo"}]
-```
-**summary**: Краткое описание эндпоинта, отображаемое в документации.  
-*Пример:*
-```
-    @app.get("/items/", summary="Get all items")
-    async def get_items():
-        return [{"item_id": "foo"}]
-```
-*description*: Полное описание эндпоинта (отображается в Swagger UI).
-*Пример:*
-```
-    @app.get("/items/", description="Retrieve a list of all items")
-    async def get_items():
-        return [{"item_id": "foo"}]
-```
-*response_model*: Модель ответа, которая указывает на структуру возвращаемых данных.
-*Пример:*
-```
-    from pydantic import BaseModel
+**example**: Пример значения, полезно для документации.  
+q: str = Query(None, example="example value")  
+ример отображается в пользовательском интерфейсе документации и помогает 
+пользователям API понять, какой формат данных ожидается.  
 
-    class Item(BaseModel):
-        name: str
-        price: float
 
-    @app.get("/items/", response_model=Item)
-    async def get_items():
-        return {"name": "foo", "price": 42.0}
-```
-*status_code*: Код состояния HTTP, который будет возвращен по умолчанию (например, 200 или 201).
-*Пример:*
-```
-    @app.post("/items/", status_code=201)
-    async def create_item(item: Item):
-        return item
-```
-*deprecated*: Помечает эндпоинт как устаревший. В документации это будет отмечено специальным значком.
-*Пример:*
-```
-        @app.get("/old-items/", deprecated=True)
-        async def get_old_items():
-            return [{"item_id": "foo"}]
-```
-*Пример полного кода:*
+***Использования типов данных***  
+
+FastAPI позволяет работать с различными типами данных для параметров запроса. Рассмотрим использование разных типов, 
+включая возможность комбинирования 
+типов с помощью оператора объединения |.
+
+```aiignore
+from fastapi import FastAPI, Query
+
+app = FastAPI()
+
+@app.get("/search/")
+async def search_items(data: str | int = Query(...)):
+    return {"data": data}
 
 ```
+
+**Обязательные параметры**
+
+В этом примере параметр data может быть либо строкой, либо целым числом. FastAPI автоматически выполняет проверку 
+типа и преобразование, если это возможно. Параметр является обязательным.
+
+Запросы могут выглядеть так:
+>/search/?data=123   # data будет целым числом 123
+> 
+>/search/?data=text  # data будет строкой "text"
+
+**Опциональные параметры**
+
+Параметры запроса могут быть опциональными (то есть не обязательными). Чтобы сделать параметр опциональным, вы можете 
+установить его значение по умолчанию в None:  
+```aiignore
+@app.get("/optional/")
+async def read_optional_items(data: str | None = Query(None)):
+    return {"data": data}
+
+```
+Этот маршрут будет корректен как при передаче параметра, так и без него:  
+
+>/optional/?data=some-data  # data будет "some-data"
+> 
+> /optional/                 # data будет None
+
+
+**Множественные значения**
+
+Вы можете использовать параметры запроса для передачи 
+множественных значений с помощью списков. Например:
+
+```aiignore
+@app.get("/items/")
+async def read_items(q: list[str] = Query([])):
+    return {"q": q}
+
+```
+Этот запрос:
+>/items/?q=item1&q=item2
+
+вернет:
+
+```aiignore
+{
+    "q": ["item1", "item2"]
+}
+
+```
+
+***Body:***
+
+В FastAPI Body — это специальный класс, который используется для извлечения данных из тела HTTP-запроса (body). Он обычно применяется для передачи данных в формате JSON (или других поддерживаемых форматах) в методах POST, PUT, PATCH и других запросах, 
+где тело запроса содержит данные.
+
+Зачем используется Body?
+
+Когда клиент отправляет данные на сервер (например, при создании или обновлении ресурса), эти данные обычно передаются в теле запроса. В FastAPI класс Body помогает вам извлекать и обрабатывать эти данные с возможностью их валидации и настройки.
+
+**Основное использование**
+
+Body часто используется с объектами Pydantic для автоматической валидации данных. 
+Рассмотрим базовый пример:  
+
+```aiignore
 from fastapi import FastAPI
 from pydantic import BaseModel
 
@@ -305,35 +287,124 @@ app = FastAPI()
 
 class Item(BaseModel):
     name: str
+    description: str | None = None
     price: float
-    description: str = None
+    tax: float | None = None
 
-@app.get("/items/{item_id}", tags=["items"], summary="Get an item by ID", response_model=Item)
-async def read_item(item_id: int):
-    return {"name": "Sample Item", "price": 10.0, "description": "A sample item"}
-
-@app.post("/items/", tags=["items"], summary="Create a new item", status_code=201)
+@app.post("/items/")
 async def create_item(item: Item):
     return item
 
-@app.put("/items/{item_id}", tags=["items"], summary="Update an existing item", response_model=Item)
-async def update_item(item_id: int, item: Item):
-    return {"name": item.name, "price": item.price, "description": item.description}
-
-@app.delete("/items/{item_id}", tags=["items"], summary="Delete an item", status_code=204)
-async def delete_item(item_id: int):
-    return
 ```
-Как делать запросы:
+В этом примере:  
 
-    GET: Получение элемента по ID — GET /items/42.
-    POST: Создание нового элемента — POST /items/ с JSON-данными.
-    PUT: Полное обновление элемента — PUT /items/42.
-    DELETE: Удаление элемента — DELETE /items/42.
+Мы определяем модель Item с помощью Pydantic, которая описывает структуру данных, ожидаемых в теле запроса.
+Маршрут /items/ принимает тело запроса в формате JSON, а FastAPI автоматически выполняет валидацию данных.
 
-Документацию можно увидеть, запустив FastAPI и перейдя по адресу http://127.0.0.1:8000/docs.
+***Аргументы Body***
+
+**1. default**: Значение по умолчанию  
+```aiignore
+from fastapi import FastAPI, Body
+
+app = FastAPI()
+
+@app.post("/items/")
+async def create_item(data: dict = Body({"default_key": "default_value"})):
+    return data
+```
+Если тело запроса не передано, значение будет по умолчанию:
+```aiignore
+{
+    "default_key": "default_value"
+}
+
+```
+
+**embed**: Вложенность тела запроса  
+
+Когда embed=True, вы можете обернуть тело запроса в дополнительный уровень вложенности, что может быть полезно 
+для совместимости с некоторыми клиентами API.
+```aiignore
+@app.post("/items/")
+async def create_item(item: dict = Body(..., embed=True)):
+    return item
+
+```
+Запрос должен выглядеть так:  
+
+```aiignore
+{
+  "item": {
+    "name": "Sample",
+    "price": 10.5
+  }
+}
+```
+В отличие от обычного случая, когда тело запроса напрямую передаётся как JSON-объект, здесь оно обёрнуто в ключ "item".  
+
+**description**: Описание параметра
+description полезен для генерации документации. Он позволяет добавить подробное описание того, что это 
+за данные и для чего они нужны.
+```aiignore
+@app.post("/items/")
+async def create_item(item: dict = Body(..., description="JSON данные о товаре")):
+    return item
+
+```
+В Swagger UI это описание появится в секции параметров запроса и укажет пользователю, для чего предназначено тело запроса.
+
+**example**: Пример значения  
+Как и для параметров запроса, example помогает указать пример данных, который будет отображаться в документации.
+
+```aiignore
+@app.post("/items/")
+async def create_item(
+    item: dict = Body(
+        ...,
+        examples={
+            "example1": {
+                "summary": "Простой пример",
+                "description": "Пример для простого товара",
+                "value": {"name": "Item 1", "price": 20.0}
+            },
+            "example2": {
+                "summary": "Другой пример",
+                "description": "Пример для другого товара",
+                "value": {"name": "Item 2", "price": 30.0, "tax": 5.0}
+            }
+        }
+    )
+):
+    return item
+
+```
+В документации будут отображены оба примера, и пользователь сможет выбрать подходящий вариант для тестирования API.  
+
+Пример с несколькими параметрами Body
+```aiignore
+from fastapi import FastAPI, Query, Body
+
+app = FastAPI()
+
+@app.post("/items/")
+async def create_item(
+    q: str = Query(None, description="Поисковый параметр"),
+    item: dict = Body(..., example={"name": "Sample", "price": 10.5})
+):
+    return {"q": q, "item": item}
+
+```
+
+Здесь:  
 
 
+q — это необязательный параметр запроса, который можно передать через URL.
+    
+item — это данные в теле запроса, которые передаются в формате JSON.
+
+
+--- 
 ***Параметры декораторов (@app.get, @app.post, @app.put, и т.д.):***
 
 **path**:  

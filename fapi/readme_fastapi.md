@@ -251,7 +251,6 @@ async def read_optional_items(data: str | None = Query(None)):
 @app.get("/items/")
 async def read_items(q: list[str] = Query([])):
     return {"q": q}
-
 ```
 Этот запрос:
 >/items/?q=item1&q=item2

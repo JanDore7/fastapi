@@ -1,4 +1,6 @@
 from fastapi import  Query, Body, APIRouter, Path
+from pydantic import BaseModel, Field
+
 
 hotels = [
     {"id": 1, "title": "Sochi", "name": "Сочи"},
@@ -7,6 +9,10 @@ hotels = [
     ]
 
 router = APIRouter(prefix='/hotels', tags=["Отели"])
+
+class Hotel(BaseModel):
+    name: str | None = Field(None,  description="Название гостиницы")
+    title: str | None = Field(None, description="Название отеля")
 
 
 @router.get("", description="Получить список отелей или отель по названию", name="Список отелей")
@@ -25,28 +31,30 @@ async def delete_hotel(hotel_name: str = Path(...,description="Название 
 
 
 @router.post("", description="Создать отель", name="Создать отель")
-async def create_hotel(hotel: dict = Body(..., example={"title": "Sochi", "name": "Сочи"}, description="Данные отеля")):
+async def create_hotel(hotel: Hotel = Body(..., example={"title": "Moscow", "name": "Москва"})):
+
     global hotels
     hotels.append(
         {
             "id": len(hotels) + 1,
-            "title": hotel["title"],
-            "name": hotel["name"]
+            "title": hotel.title,
+            "name": hotel.name
         }
     )
     return {"status": "ok"}
 
 
+
 @router.put("/{hotel_id}", description="Обновить отель", name="Обновить отель")
-async def update_hotel(hotel_id: int = Path(..., description="Идентификатор гостиницы"), hotel: dict = Body(..., example={"title": "New York", "name": "Нью-Йорк"},
+async def update_hotel(hotel_id: int = Path(..., description="Идентификатор гостиницы"), hotel: Hotel = Body(..., example={"title": "New York", "name": "Нью-Йорк"},
                                                          description="Новые данные отеля")):
     global hotels
     hotels = [hotel for hotel in hotels if hotel["id"] != hotel_id]
     hotels.append(
         {
             "id": hotel_id,
-            "title": hotel["title"],
-            "name": hotel["name"]
+            "title": hotel.title,
+            "name": hotel.name
         }
     )
     return {"status": "ok", "hotel": hotel}
@@ -55,17 +63,15 @@ async def update_hotel(hotel_id: int = Path(..., description="Идентифик
 @router.patch("/{hotel_id}", description="Обновить часть информации об отеле", name="Редактировать отель")
 async def patch_hotel(
         hotel_id: int = Path(..., description="Идентификатор гостиницы"),
-        data_hotel: dict = Body(dict, description="Новые данные отеля")):
+        data_hotel: Hotel = Body()):
     global hotels
-    if len(data_hotel) < 2:
-        for hotel in hotels:
-            if hotel["id"] == hotel_id:
-                if "title" in data_hotel:
-                    hotel["title"] = data_hotel["title"]
-                if "name" in data_hotel:
-                    hotel["name"] = data_hotel["name"]
-                    return {"status": "ok", "hotel": hotel }
-    else:
-        await update_hotel(hotel_id, data_hotel)
-        return {"status": "ok", "hotel": hotels}
+    for hotel in hotels:
+        if hotel["id"] == hotel_id:
+            if data_hotel.name is not None:
+                hotel["name"] = data_hotel.name
+            if data_hotel.title is not None:
+                hotel["title"] = data_hotel.title
+            return {"hotels": hotels}  # return all hotels
+
+
 

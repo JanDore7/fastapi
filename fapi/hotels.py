@@ -1,4 +1,4 @@
-from fastapi import  Query, Body, APIRouter, Path
+from fastapi import  Query, APIRouter, Path
 from pydantic import BaseModel, Field
 
 
@@ -31,7 +31,7 @@ async def delete_hotel(hotel_name: str = Path(...,description="Название 
 
 
 @router.post("", description="Создать отель", name="Создать отель")
-async def create_hotel(hotel: Hotel = Body(..., example={"title": "Moscow", "name": "Москва"})):
+async def create_hotel(hotel: Hotel):
 
     global hotels
     hotels.append(
@@ -46,8 +46,8 @@ async def create_hotel(hotel: Hotel = Body(..., example={"title": "Moscow", "nam
 
 
 @router.put("/{hotel_id}", description="Обновить отель", name="Обновить отель")
-async def update_hotel(hotel_id: int = Path(..., description="Идентификатор гостиницы"), hotel: Hotel = Body(..., example={"title": "New York", "name": "Нью-Йорк"},
-                                                         description="Новые данные отеля")):
+async def update_hotel(hotel: Hotel,
+                       hotel_id: int = Path(..., description="Идентификатор гостиницы")):
     global hotels
     hotels = [hotel for hotel in hotels if hotel["id"] != hotel_id]
     hotels.append(
@@ -62,8 +62,9 @@ async def update_hotel(hotel_id: int = Path(..., description="Идентифик
 
 @router.patch("/{hotel_id}", description="Обновить часть информации об отеле", name="Редактировать отель")
 async def patch_hotel(
-        hotel_id: int = Path(..., description="Идентификатор гостиницы"),
-        data_hotel: Hotel = Body()):
+        data_hotel: Hotel,
+        hotel_id: int = Path(..., description="Идентификатор гостиницы")
+        ):
     global hotels
     for hotel in hotels:
         if hotel["id"] == hotel_id:

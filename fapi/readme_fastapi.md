@@ -863,4 +863,7 @@ sys.path.append(str(Path(__file__).parent / "app"))
 
 import utils
 
-Этот код добавляет директорию app в пути поиска модулей, позволяя импортировать модуль utils.py.
+Этот код добавляет директорию app в пути поиска модулей, 
+позволяя импортировать модуль utils.py.
+
+**[pydantic_sattings...](pydantic_sattings.md)**

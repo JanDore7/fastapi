@@ -20,8 +20,9 @@ MacOS: https://dbeaver.io/download/ (скачайте и запустите)
 
 **Подключение к базе данных PostgreSQL в DBeaver**
 
-![Подключить](../asynchrony/images/photo_2024-09-26_03-17-01.jpg)
-![Подключить](../asynchrony/images/photo_2024-09-26_03-16-10.jpg))
+![Подключить](images/photo_2024-09-26_03-17-01.jpg)
+![Подключить](images/photo_2024-09-26_03-16-10.jpg))
 
+***[sqlalchemy and alembic ...](sqlalchemy_and_alembic.md)***
 
 

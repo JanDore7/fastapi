@@ -9,3 +9,5 @@ class HotelsOrm(Base):
     id : Mapped[int] = mapped_column(BIGINT, primary_key=True)
     title : Mapped[str] = mapped_column(String(100))
     location : Mapped[str]
+
+

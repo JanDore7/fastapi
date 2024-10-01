@@ -258,7 +258,7 @@ class User(Base):
 
 
 
-## Alembic
+  ## Alembic
 
 Alembic — это инструмент миграций базы данных для SQLAlchemy, который позволяет отслеживать изменения в структуре базы данных и применять их последовательно. Он широко используется для управления схемой базы данных в проектах на Python, особенно в сочетании с FastAPI и SQLAlchemy.
 Установка Alembic  
@@ -409,9 +409,9 @@ else:
 sqlalchemy.url = нужно обязательно указывать драйвер подключения к базе данных.  
 Если вы используете SQLite, то этот параметр можно не указывать.  
 
-В нашем проекте мы для этого переопределим config в env.py:
-config = context.config
-config.set_main_option("sqlalchemy.url", f'{settings.DB_URL}?async_fallback=True')
+В нашем проекте мы для этого переопределим config в env.py:  
+config = context.config  
+config.set_main_option("sqlalchemy.url", f'{settings.DB_URL}?async_fallback=True')  
 
 **config = context.config:**  
 **context.config** — это объект конфигурации Alembic, который загружается из файла alembic.ini и предоставляет доступ к различным параметрам настройки.  
@@ -469,19 +469,19 @@ config.set_main_option("sqlalchemy.url", f'{settings.DB_URL}?async_fallback=True
 
 Полный список команд Alembic:  
 
-**alembic init [directory]** — инициализация проекта для работы с Alembic.
-**alembic revision -m "Комментарий"** — создание новой ревизии (миграции) с комментариями.
-**alembic revision --autogenerate -m "Комментарий" **— автоматическая генерация миграции на основе изменений моделей.
-**alembic upgrade [version]** — обновление до указанной версии.
-**alembic upgrade head **— обновление до последней миграции.
-**alembic upgrade +1 **— применение следующей миграции.
-**alembic downgrade [version] **— откат до указанной версии.
-**alembic downgrade -1 **— откат на одну версию назад.
-**alembic downgrade base **— откат ко всем миграциям.
-**alembic current **— показать текущую версию базы данных.
-**alembic history **— показать историю миграций.
-**alembic heads **— показать все доступные версии миграций.
-**alembic branches **— показать ветвления миграций, если есть несколько путей.
-**alembic show [revision] **— показать детали миграции.
-**alembic stamp [revision] **— отметить базу как соответствующую определенной миграции без фактического
+**alembic init [directory]** — инициализация проекта для работы с Alembic.  
+**alembic revision -m "Комментарий"** — создание новой ревизии (миграции) с комментариями.  
+**alembic revision --autogenerate -m "Комментарий"**— автоматическая генерация миграции на основе изменений моделей.  
+**alembic upgrade [version]** — обновление до указанной версии.  
+**alembic upgrade head**— обновление до последней миграции.  
+**alembic upgrade +1**— применение следующей миграции.  
+**alembic downgrade [version]**— откат до указанной версии.  
+**alembic downgrade -1**— откат на одну версию назад.  
+**alembic downgrade base**— откат ко всем миграциям.  
+**alembic current**— показать текущую версию базы данных.  
+**alembic history**— показать историю миграций.  
+**alembic heads**— показать все доступные версии миграций.  
+**alembic branches**— показать ветвления миграций, если есть несколько путей.  
+**alembic show [revision]**— показать детали миграции.  
+**alembic stamp [revision]**— отметить базу как соответствующую определенной миграции без фактического
 выполнения миграций.  

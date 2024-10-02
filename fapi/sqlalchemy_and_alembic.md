@@ -485,3 +485,23 @@ config.set_main_option("sqlalchemy.url", f'{settings.DB_URL}?async_fallback=True
 **alembic show [revision]**— показать детали миграции.  
 **alembic stamp [revision]**— отметить базу как соответствующую определенной миграции без фактического
 выполнения миграций.  
+
+## Научим Alembic pep-8 при помощи библиотеки Black
+
+> pip install black
+
+Затем в файле alembic.ini добавьте следующие параметры:
+
+Раскомментируй:
+
+```aiignore
+hooks = black
+black.type = console_scripts
+black.entrypoint = black
+black.options = -l 79 REVISION_SCRIPT_FILENAME  #Измени длину строки на с -l 79 на 88
+```
+Затем раскомментируй:
+
+```aiignore
+version_locations = %(here)s/bar:%(here)s/bat:src/migrations/versions
+```

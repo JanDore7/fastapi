@@ -41,15 +41,25 @@ def create_hotel(hotel_data: Hotel = Body(openapi_examples={
         "summary": "Сочи",
         "value": {
             "title": "Отель Сочи 5 звезд у моря",
-            "name": "sochi_u_morya",
+            "location": "Сочи,ул.Красная, 5",
         }
     },
     "2": {
         "summary": "Дубай",
         "value": {
             "title": "Отель Дубай У фонтана",
-            "name": "dubai_fountain",
+            "location": "Дубай, ул.Уфанский, 10",
         }
+    },
+    "3": {
+        "summary": "Пакетная загрузка",
+        "value": [{
+            "title": "Отель Мальдивы",
+            "location": "Мальдивы, ул.Нагорная , 27",
+        },{
+            "title": "Отель Геленджик",
+            "location": "Геленджик, ул.Морская, 90",
+        }]
     }
 })
 ):

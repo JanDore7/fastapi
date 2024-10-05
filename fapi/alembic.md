@@ -248,3 +248,6 @@ black.options = -l 79 REVISION_SCRIPT_FILENAME  #Измени длину стр�
 ```aiignore
 version_locations = %(here)s/bar:%(here)s/bat:src/migrations/versions
 ```
+
+
+# [Назад к Алхимии ...](sqlalchemy_and_alembic.md)

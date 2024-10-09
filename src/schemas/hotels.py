@@ -2,9 +2,10 @@ from pydantic import BaseModel, Field
 
 
 class Hotel(BaseModel):
-    name: str
     title: str
+    location: str
 
 class HotelPATCH(BaseModel):
-    name: str | None = Field(None,  description="Название гостиницы")
-    title: str | None = Field(None, description="Название отеля")
+    title: str | None = Field(None, description="Описание отеля")
+    location: str | None = Field(None, description="Адрес отеля")
+

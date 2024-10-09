@@ -272,7 +272,7 @@ class User(Base):
 
 **ForeignKey:** Связывает столбец с другим столбцом (внешний ключ).
 Пример: user_id: Mapped[int] = mapped_column(ForeignKey('users.id'))  
-[Подробнее ..]()
+[Подробнее ..](foreignKey.md)
 
 **server_default:** Устанавливает значение по умолчанию на уровне сервера базы данных.
 Пример: created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())  
@@ -962,3 +962,6 @@ async def get_users_in_partitions(session):
 **one_or_none()** — возвращает один результат или None, но выбрасывает исключение, если найдено более одной записи.
 **fetchall()** и fetchone() — возвращают сырые данные запроса в виде кортежей (все строки или одну строку соответственно).
 **partitions()** — обрабатывает результаты запроса порциями.
+
+
+### [Паттерн DAO ...](DAO.md)

@@ -6,6 +6,7 @@ from src.api.dependencies import PaginationDep
 from src.schemas.hotels import Hotel
 from src.database import async_session, engine
 from src.models.hotels import HotelsOrm
+from src.repos.hotels import HotelRepository
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
@@ -17,21 +18,12 @@ async def get_hotels(
         location: str | None = Query(None, description="Адрес отеля"),
 ):
     page_size = pagination.page_size or 3
-
     async with (async_session() as session):
-        query = select(HotelsOrm)
-        if title:
-            query = query.where(HotelsOrm.title.ilike(f"%{title}%"))
-        if location:
-            query = query.where(HotelsOrm.location.op("~")(rf"\y{location.capitalize()}\y"))
-        query = (
-            query
-            .limit(page_size)
-            .offset((pagination.page_nuber - 1) * page_size)
-        )
-        print(query.compile(engine, compile_kwargs={"literal_binds": True}))
-        result = await session.execute(query)
-        return result.scalars().all()
+        return await HotelRepository(session).get_all(
+            location=location,
+            title=title,
+            limit=page_size,
+            offset=page_size * (pagination.page_nuber - 1))
 
 
 @router.post("", summary="Создание отеля")
@@ -62,16 +54,11 @@ async def create_hotels(hotel_data: List[Hotel] = Body(openapi_examples={
     }
 })
 ):
-    hotels_orm = []
     async with async_session() as session:
-        for hotel in hotel_data:
-            add_hotel_stmt = insert(HotelsOrm).values(**hotel.model_dump()).returning(HotelsOrm.title)
-            print(add_hotel_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
-            await session.execute(add_hotel_stmt)
-            hotels_orm.append(await session.scalar(add_hotel_stmt))
-            await session.commit()
+        result = await HotelRepository(session).add(hotel_data)
+        await session.commit()
+        return {"status": "OK", "data": result}
 
-    return {"status": "ok", "hotels": hotels_orm}
 
 #
 # @router.put("/{hotel_id}")

@@ -1,4 +1,4 @@
-from typing import Annotated, TypeVar, List
+from typing import Annotated
 
 from fastapi import Depends, Query
 from pydantic import BaseModel
@@ -11,6 +11,5 @@ class PaginationParams(BaseModel):
 
 PaginationDep = Annotated[PaginationParams, Depends()]
 
-T = TypeVar('T', bound=BaseModel)
-BaseModelPaydantic = List[T]
+
 

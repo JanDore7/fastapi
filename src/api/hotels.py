@@ -1,12 +1,12 @@
 from typing import List
-from pydantic import constr
+
 from fastapi import Query, APIRouter, Body
 
 from src.api.dependencies import PaginationDep
-from src.schemas.hotels import Hotel
-from src.database import async_session, engine
+from src.schemas.hotels import Hotel, HotelPATCH
+from src.database import async_session
 
-from src.repos.hotels import HotelRepository
+from repos.hotels import HotelRepository
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
@@ -61,22 +61,24 @@ async def create_hotels(hotel_data: List[Hotel] = Body(openapi_examples={
 
 
 @router.put("", summary="Редактирование отеля")
-async def edit_hotels(hotel_data: List[Hotel],
-                      title: constr(max_length=100) | None = Query(None, description="Название или описание отеля"),
-                      location: constr(max_length=500) | None = Query(None, description="Адрес отеля"),
-                      ):
+async def edit_hotels(hotel_id: int, hotel_data: Hotel):
     async with (async_session() as session):
-        result = await HotelRepository(session).edit(hotel_data, title=title, location=location)
+        await HotelRepository(session).edit(hotel_data, id=hotel_id)
         await session.commit()
-        return result
+    return {"status": "OK"}
 
 
 @router.delete("", summary="Удаление отеля")
-async def delete_hotels(
-        title: constr(max_length=100) | None = Query(None, description="Название или описание отеля"),
-        location: constr(max_length=500) | None = Query(None, description="Адрес отеля")
-):
+async def delete_hotels(hotel_id:int):
     async with (async_session() as session):
-        result = await HotelRepository(session).delete(title=title, location=location)
+        await HotelRepository(session).delete(id=hotel_id)
         await session.commit()
-        return result
+    return {"status": "OK"}
+
+@router.patch("", summary="Редактирование отеля",
+              description="<h1>Тут можно редактировать отель</h1>")
+async def partially_edit_hotels(hotel_id: int, hotel_data: HotelPATCH):
+    async with (async_session() as session):
+        await HotelRepository(session).partially_edit(hotel_data, exclude_unset=True, id=hotel_id)
+        await session.commit()
+    return {"status": "OK"}

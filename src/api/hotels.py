@@ -11,6 +11,12 @@ from repos.hotels import HotelRepository
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
 
+@router.get("/{hotel_id}", summary="Получение отеля")
+async def get_hotel(hotel_id: int):
+    async with (async_session() as session):
+        return await HotelRepository(session).get(model_id=hotel_id)
+
+
 @router.get("", summary="Получение списка отелей")
 async def get_hotels(
         pagination: PaginationDep,

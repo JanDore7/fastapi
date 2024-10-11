@@ -40,3 +40,8 @@ class BaseRepository:
     async def partially_edit(self, data: BaseModel, exclude_unset: bool = True, **filter_by):
         update_stmt = update(self.model).filter_by(**filter_by).values(**data.model_dump(exclude_unset=exclude_unset))
         await self.session.execute(update_stmt)
+
+    async def get(self, model_id: int):
+        query = select(self.model).filter_by(id=model_id)
+        result = await self.session.execute(query)
+        return result.scalar()

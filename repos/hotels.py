@@ -8,7 +8,7 @@ class HotelRepository(BaseRepository):
     model = HotelsOrm
     schema = Hotel
 
-    async def get_all(self, location, title, limit, offset):
+    async def get_all(self, location, title, limit, offset) -> list[Hotel]:
         query = select(HotelsOrm)
         if title:
             query = query.filter(HotelsOrm.title.ilike(f"%{title}%"))
@@ -20,5 +20,5 @@ class HotelRepository(BaseRepository):
             .offset(offset)
         )
         result = await self.session.execute(query)
-        return [self.schema.model_validate(model, from_attributes=True) for model in result.scalars().all()]
+        return [self.schema.model_validate(model) for model in result.scalars().all()]
 

@@ -965,3 +965,4 @@ async def get_users_in_partitions(session):
 
 
 ### [Паттерн DAO ...](DAO.md)
+### [Паттерн DATA MAPPING ...](DATA_MAPPING.md)

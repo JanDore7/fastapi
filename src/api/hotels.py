@@ -3,7 +3,7 @@ from typing import List
 from fastapi import Query, APIRouter, Body
 
 from src.api.dependencies import PaginationDep
-from src.schemas.hotels import Hotel, HotelPATCH
+from src.schemas.hotels import Hotel, HotelPATCH, HotelAdd
 from src.database import async_session
 
 from repos.hotels import HotelRepository
@@ -33,7 +33,7 @@ async def get_hotels(
 
 
 @router.post("", summary="Создание отеля")
-async def create_hotels(hotel_data: List[Hotel] = Body(openapi_examples={
+async def create_hotels(hotel_data: List[HotelAdd] = Body(openapi_examples={
     "1": {
         "summary": "Сочи",
         "value": [{
@@ -67,7 +67,7 @@ async def create_hotels(hotel_data: List[Hotel] = Body(openapi_examples={
 
 
 @router.put("", summary="Редактирование отеля")
-async def edit_hotels(hotel_id: int, hotel_data: Hotel):
+async def edit_hotels(hotel_id: int, hotel_data: HotelAdd):
     async with (async_session() as session):
         await HotelRepository(session).edit(hotel_data, id=hotel_id)
         await session.commit()

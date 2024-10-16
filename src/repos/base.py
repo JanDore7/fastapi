@@ -30,7 +30,8 @@ class BaseRepository:
         add_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
         print(add_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
         result = await self.session.execute(add_stmt)
-        return self.schema.model_validate(result)
+        model = result.scalars().one()
+        return self.schema.model_validate(model)
 
     async def edit(self, data: BaseModel, **filter_by):
         update_stmt = (

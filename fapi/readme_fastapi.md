@@ -870,4 +870,242 @@ import utils
 Этот код добавляет директорию app в пути поиска модулей, 
 позволяя импортировать модуль utils.py.
 
+
+
+
 **[pydantic_sattings...](pydantic_sattings.md)**
+
+## Response
+
+В FastAPI класс Response используется для управления тем, как ответы возвращаются клиенту.
+По умолчанию, FastAPI автоматически создает объект Response на основе возвращаемых данных, 
+но вы можете вручную настроить ответ, если вам нужен контроль над его содержимым, заголовками, 
+статус-кодом, и т.д.  
+
+**Как работает Response в FastAPI**
+
+Когда вы пишете обработчик (эндпоинт), FastAPI возвращает объект Response, который включает:    
+**Тело ответа (content):** данные, которые передаются клиенту (например, JSON, HTML, текст и т.д.).
+**Заголовки (headers)**: HTTP-заголовки, передающие метаданные об ответе (например, Content-Type, Cache-Control).  
+**Статус-код (status_code):** код состояния HTTP (например, 200 OK, 404 Not Found), который говорит о результате
+выполнения запроса.  
+**Куки (cookies):** механизм передачи данных между клиентом и сервером, хранящихся на стороне клиента.  
+
+FastAPI сам создает ответ, когда вы возвращаете данные, например, словарь или список. 
+Однако, вы можете возвращать объекты Response, чтобы явно контролировать содержимое и поведение ответа.  
+
+### Основные классы для работы с Response
+
+1. **Response** - базовый класс для создания кастомных ответов. Вы можете передать текст, HTML, JSON,
+и указать тип содержимого (media_type).  
+Пример: 
+```aiignore
+from fastapi import FastAPI, Response
+
+app = FastAPI()
+
+@app.get("/custom")
+def custom_response():
+    return Response(content="Custom plain text", media_type="text/plain")
+
+```
+2. **JSONResponse** -  класс для отправки JSON-ответов. Это стандартный тип ответа, если вы возвращаете словарь.  
+
+Пример:  
+```
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
+
+app = FastAPI()
+
+@app.get("/json")
+def get_json_response():
+    data = {"message": "This is a JSON response"}
+    return JSONResponse(content=data)
+```
+3. **HTMLResponse** -  используется для отправки HTML-документов.
+
+Пример:
+```aiignore
+from fastapi import FastAPI
+from fastapi.responses import HTMLResponse
+
+app = FastAPI()
+
+@app.get("/html")
+def get_html_response():
+    html_content = "<h1>Hello, FastAPI!</h1>"
+    return HTMLResponse(content=html_content)
+
+```
+4. **PlainTextResponse** -  используется для отправки текста.
+
+Пример:
+```aiignore
+from fastapi import FastAPI
+from fastapi.responses import PlainTextResponse
+
+app = FastAPI()
+
+@app.get("/text")
+def get_text_response():
+    return PlainTextResponse(content="This is plain text")
+
+```
+### Работа с куками
+
+Куки используются для хранения небольших фрагментов данных на стороне клиента.
+В FastAPI вы можете управлять куками через Response и Request.  
+Установка куки  
+
+Для установки куки используется метод set_cookie() у объекта Response.
+Вы можете задать параметры, такие как имя, значение, время жизни куки и другие.
+
+Пример установки куки:  
+```aiignore
+from fastapi import FastAPI, Response
+
+app = FastAPI()
+
+@app.get("/set-cookie/")
+def set_cookie(response: Response):
+    response.set_cookie(key="my_cookie", value="cookie_value", max_age=3600)  # кука будет жить 1 час
+    return {"message": "Cookie set"}
+
+```
+
+Чтение куки  
+
+Чтобы прочитать куки, используйте объект Request из FastAPI. Куки доступны через свойство cookies.  
+
+Пример:
+```aiignore
+from fastapi import FastAPI, Request
+
+app = FastAPI()
+
+@app.get("/get-cookie/")
+def get_cookie(request: Request):
+    my_cookie = request.cookies.get("my_cookie")
+    return {"my_cookie": my_cookie}
+
+```
+Удаление куки  
+
+Для удаления куки нужно вызвать delete_cookie() у объекта Response.  
+
+Пример удаления куки:
+```aiignore
+from fastapi import FastAPI, Response
+
+app = FastAPI()
+
+@app.get("/delete-cookie/")
+def delete_cookie(response: Response):
+    response.delete_cookie(key="my_cookie")
+    return {"message": "Cookie deleted"}
+
+```
+Методы Response  
+
+Класс Response предоставляет следующие важные методы для работы с ответами:  
+
+***set_cookie(key, value, max_age, expires, path, domain, secure, httponly)*** — устанавливает куки.  
+key (обязательный):  
+
+Это имя куки, которое будет храниться на стороне клиента.
+Например: "session_id", "user_token".
+
+value (обязательный):  
+
+Значение куки, которое будет ассоциировано с ключом.
+Например: уникальный идентификатор сессии, токен доступа.
+
+Пример:  
+
+
+>response.set_cookie(key="session_id", value="abc123")
+
+max_age (необязательный):  
+
+Указывает время жизни куки в секундах. По истечении этого времени кука удаляется.
+Если параметр не указан, то кука будет сохраняться до закрытия браузера (сессионная кука).
+Например: 3600 (кука будет жить 1 час).
+
+Пример:  
+
+
+>response.set_cookie(key="session_id", value="abc123", max_age=3600)  # Кука живет 1 час
+
+expires (необязательный):  
+
+Альтернативный способ задать время жизни куки через конкретную дату и время, после которого она истекает. Дата указывается в формате UNIX timestamp или строкой в формате HTTP Date.
+Обычно используется либо max_age, либо expires, но не оба сразу.
+
+Пример:  
+
+```
+from datetime import datetime, timedelta
+
+expires = (datetime.utcnow() + timedelta(days=1)).strftime("%a, %d %b %Y %H:%M:%S GMT")
+response.set_cookie(key="session_id", value="abc123", expires=expires)
+```
+path (необязательный):  
+
+Определяет путь на сервере, к которому привязана кука. Только страницы, соответствующие этому пути, будут иметь доступ к куке.
+По умолчанию — /, что означает, что кука доступна на всех страницах сайта.
+
+Пример:  
+
+
+>response.set_cookie(key="session_id", value="abc123", path="/admin")  # Кука будет доступна только на страницах под "/admin"
+
+domain (необязательный):  
+
+Определяет домен, на котором доступна кука. Полезно для работы с поддоменами.
+Например, если указано domain=".example.com", кука будет доступна как на example.com, так и на всех его поддоменах (например, app.example.com).
+
+Пример:  
+
+
+>response.set_cookie(key="session_id", value="abc123", domain=".example.com")  # Кука доступна на поддоменах
+
+secure (необязательный)  :
+
+Если установлено в True, кука будет отправляться только по защищенному соединению (через HTTPS). Это помогает защитить куку от перехвата через незащищенные соединения.
+По умолчанию False.
+
+Пример:  
+
+
+>response.set_cookie(key="session_id", value="abc123", secure=True)  # Кука будет отправляться только по HTTPS
+
+httponly (необязательный):  
+
+Если установлено в True, кука не будет доступна через JavaScript (то есть она не может быть прочитана или изменена с помощью document.cookie). Это помогает защитить куку от атак XSS (межсайтовый скриптинг).
+По умолчанию False.
+
+Пример:  
+
+
+>response.set_cookie(key="session_id", value="abc123", httponly=True)  # Кука не доступна через JavaScript
+  
+
+***delete_cookie(key)*** — удаляет куки.
+***headers*** — атрибут, который можно использовать для добавления/изменения заголовков в ответе.
+***status_code*** — можно задать код состояния HTTP для ответа.
+
+Пример использования Response с настройкой куки и заголовков  
+```aiignore
+from fastapi import FastAPI, Response
+
+app = FastAPI()
+
+@app.get("/custom-response/")
+def custom_response(response: Response):
+    response.set_cookie(key="test_cookie", value="test_value")
+    response.headers["X-Custom-Header"] = "CustomHeaderValue"
+    return {"message": "Custom Response with Cookie and Header"}
+
+```
+

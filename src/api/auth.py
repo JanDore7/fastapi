@@ -1,6 +1,6 @@
 from sqlalchemy.exc import NoResultFound
 
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, HTTPException, Response, Request
 
 from src.repos.usres import UserRepository
 from src.database import async_session
@@ -36,3 +36,8 @@ async def login_user(data: UserRequestAdd, response: Response):
         access_token = AuthService().create_access_token(data={"sub": user.id})
         response.set_cookie(key="access_token", value=access_token, httponly=True)
         return {"access_token": access_token}
+
+
+@router.get("/only_auth", summary="Только для аутентифицированных")
+async def only_auth(request: Request):
+    access_token = request.cookies.get()

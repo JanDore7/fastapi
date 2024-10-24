@@ -1108,4 +1108,215 @@ def custom_response(response: Response):
     return {"message": "Custom Response with Cookie and Header"}
 
 ```
+Request в FastAPI — это объект, который содержит информацию о входящем HTTP-запросе. 
+Используя объект Request, вы можете получить доступ к различным частям запроса, 
+таким как заголовки, тело, параметры URL, куки и другие метаданные.  
+Как использовать объект Request  
 
+Чтобы получить объект Request, нужно импортировать его из fastapi и передать как зависимость в функцию-обработчик.
+
+Пример:
+```aiignore
+from fastapi import FastAPI, Request
+
+app = FastAPI()
+
+@app.get("/")
+async def read_request(request: Request):
+    return {"method": request.method, "url": str(request.url)}
+
+```
+В этом примере request передается как аргумент функции, 
+и мы можем использовать его методы и атрибуты для работы с запросом.  
+**Основные методы и атрибуты объекта Request**  
+
+**method:**
+
+Возвращает HTTP-метод запроса (например, GET, POST, PUT, DELETE).
+
+Пример:
+
+>method = request.method  # Вернет строку с методом запроса
+
+**url:**
+
+Возвращает объект URL, представляющий URL запроса. Этот объект включает различные части URL (например, схему, хост, путь, параметры).
+
+Пример:
+
+>url = request.url  # Вернет URL запроса
+
+**base_url:**
+
+Возвращает базовый URL (схема, хост, и порт без пути).
+
+Пример:
+
+>base_url = request.base_url  # Вернет базовый URL, например, "http://example.com/"
+
+**headers:**
+
+Возвращает заголовки запроса в виде словаря. Можно получить значения отдельных заголовков.
+
+Пример:
+
+>user_agent = request.headers.get("user-agent")  # Получить заголовок User-Agent
+
+**query_params:**
+
+Возвращает параметры строки запроса (query parameters) в виде объекта QueryParams. Это словарь, который содержит параметры и их значения, переданные в URL после знака ?.
+
+Пример:
+
+>query_params = request.query_params  # Вернет все query параметры
+>param_value = request.query_params.get("param_name")  # Получить значение параметра
+
+**path_params:**
+
+Возвращает параметры пути (например, динамические части URL, такие как /users/{user_id}).
+
+Пример:
+
+>path_params = request.path_params  # Вернет параметры пути как словарь
+
+**cookies:**
+
+Возвращает куки запроса как словарь.
+
+Пример:
+
+>cookies = request.cookies  # Получить все куки
+>session_id = request.cookies.get("session_id")  # Получить значение куки по ключу
+
+**client:**
+
+Возвращает информацию о клиенте (IP-адрес, порт).
+
+Пример:
+
+>client_host = request.client.host  # Получить IP-адрес клиента
+>client_port = request.client.port  # Получить порт клиента
+
+**body():**
+
+Асинхронный метод, который возвращает полное тело запроса в виде байтов. Используется для получения данных, отправленных клиентом в теле запроса (например, при POST-запросах с JSON или формой).
+
+Пример:
+
+>body = await request.body()  # Вернет тело запроса как байты
+
+**json():**
+
+Асинхронный метод, который автоматически парсит тело запроса как JSON и возвращает Python-словарь. Полезно для работы с JSON-данными, отправленными клиентом.
+
+Пример:
+
+>json_data = await request.json()  # Вернет данные JSON-запроса как словарь
+
+**form():**
+
+Асинхронный метод, который используется для извлечения данных из форм (тип содержимого application/x-www-form-urlencoded или multipart/form-data).
+
+Пример:
+
+>form_data = await request.form()  # Вернет данные формы как словарь
+
+**stream():**
+
+Асинхронный генератор, который позволяет считывать тело запроса частями (по мере поступления данных). Это полезно для работы с большими данными, которые могут быть слишком велики для загрузки в память.
+
+Пример:
+
+>async for chunk in request.stream():
+>    print(chunk)  # Печатает части тела запроса
+
+**scope:**
+
+Возвращает полную информацию о запросе, которая передается в ASGI-приложение. Содержит такие данные, как метод запроса, путь, заголовки, схему, параметры и многое другое.
+
+Пример:
+
+>scope = request.scope  # Получить данные scope (все метаданные запроса)
+
+**state:**
+
+Позволяет хранить данные между запросами в одном жизненном цикле приложения. Полезно для передачи данных между разными частями кода без явной передачи параметров.
+
+Пример:
+
+>request.state.some_data = "value"  # Установить данные
+>value = request.state.some_data  # Получить данны
+
+Пример использования всех основных методов
+```aiignore
+from fastapi import FastAPI, Request
+
+app = FastAPI()
+
+@app.post("/submit")
+async def handle_request(request: Request):
+    # Получение метода запроса
+    method = request.method
+    
+    # Получение URL запроса
+    url = str(request.url)
+    
+    # Получение заголовков
+    user_agent = request.headers.get("user-agent", "unknown")
+    
+    # Получение query параметров
+    query_params = request.query_params
+    
+    # Получение параметров пути
+    path_params = request.path_params
+    
+    # Получение куки
+    cookies = request.cookies.get("session_id", "no_session")
+    
+    # Получение тела запроса
+    body = await request.body()
+    
+    # Парсинг JSON данных
+    json_data = await request.json()
+    
+    # Получение данных из формы
+    form_data = await request.form()
+    
+    # Клиентская информация
+    client_host = request.client.host
+    
+    # Возвращаем собранную информацию
+    return {
+        "method": method,
+        "url": url,
+        "user_agent": user_agent,
+        "query_params": query_params,
+        "path_params": path_params,
+        "cookies": cookies,
+        "body": body.decode(),
+        "json_data": json_data,
+        "form_data": dict(form_data),
+        "client_host": client_host
+    }
+
+```
+
+Пример работы с заголовками и куками
+```aiignore
+from fastapi import FastAPI, Request, Response
+
+app = FastAPI()
+
+@app.get("/cookie")
+async def get_cookie(request: Request, response: Response):
+    # Получаем куку "user_session" из запроса
+    user_session = request.cookies.get("user_session")
+    
+    if not user_session:
+        # Если куки нет, устанавливаем новую
+        response.set_cookie(key="user_session", value="abc123", max_age=3600)
+        return {"message": "Cookie set!"}
+    
+    return {"message": "Cookie exists", "user_session": user_session}
+
+```

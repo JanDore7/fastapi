@@ -40,4 +40,5 @@ async def login_user(data: UserRequestAdd, response: Response):
 
 @router.get("/only_auth", summary="Только для аутентифицированных")
 async def only_auth(request: Request):
-    access_token = request.cookies.get()
+    access_token = request.cookies.get("access_token")
+    print(access_token)

@@ -1,5 +1,7 @@
 Установка библиотек  
 
+**[Гайд](https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/?h=jwt)**
+
 Сначала установим необходимые библиотеки:  
 
 

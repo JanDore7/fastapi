@@ -40,5 +40,9 @@ async def login_user(data: UserRequestAdd, response: Response):
 
 @router.get("/only_auth", summary="Только для аутентифицированных")
 async def only_auth(request: Request):
-    access_token = request.cookies.get("access_token")
-    print(access_token)
+    access_token = request.cookies.get("access_token", None)
+    if not access_token:
+        raise HTTPException(status_code=401, detail="Требуется аутентификация")
+    data = AuthService().decode_access_token(access_token)
+    return data
+

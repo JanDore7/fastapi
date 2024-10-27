@@ -1,7 +1,8 @@
 from sqlalchemy.exc import NoResultFound
 
-from fastapi import APIRouter, HTTPException, Response, Request
+from fastapi import APIRouter, HTTPException, Response
 
+from src.api.dependencies import UserIdDepends
 from src.repos.usres import UserRepository
 from src.database import async_session
 from src.schemas.users import UserRequestAdd, UserAdd
@@ -33,16 +34,14 @@ async def login_user(data: UserRequestAdd, response: Response):
         if not AuthService().verify_password(data.password, user.hashed_password):
             raise HTTPException(status_code=401, detail="Неверный пароль")
 
-        access_token = AuthService().create_access_token(data={"sub": user.id})
+        access_token = AuthService().create_access_token(data={"user_id": user.id})
         response.set_cookie(key="access_token", value=access_token, httponly=True)
         return {"access_token": access_token}
 
 
-@router.get("/only_auth", summary="Только для аутентифицированных")
-async def only_auth(request: Request):
-    access_token = request.cookies.get("access_token", None)
-    if not access_token:
-        raise HTTPException(status_code=401, detail="Требуется аутентификация")
-    data = AuthService().decode_access_token(access_token)
-    return data
+@router.get("/me", summary="Только для аутентифицированных")
+async def get_me(user_id: UserIdDepends):
+    async with async_session() as session:
+        return await UserRepository(session).one_or_none(id=user_id)
+
 

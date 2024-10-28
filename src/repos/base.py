@@ -1,5 +1,3 @@
-from typing import List
-from fastapi import HTTPException
 from sqlalchemy import select, insert, update, delete
 from pydantic import BaseModel
 from src.database import engine

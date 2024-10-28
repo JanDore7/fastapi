@@ -7,7 +7,7 @@ from src.services.auth import AuthService
 
 
 class PaginationParams(BaseModel):
-    page_nuber: Annotated[int, Query(default=1, ge=1)]
+    page_number: Annotated[int, Query(default=1, ge=1)]
     page_size: Annotated[int | None, Query(None, ge=1, lt=30)]
 
 
@@ -24,5 +24,6 @@ def get_token(request: Request):
 def get_current_user_id(token: str = Depends(get_token)) -> int:
     data = AuthService().decode_access_token(token)
     return data["user_id"]
+
 
 UserIdDepends = Annotated[int, Depends(get_current_user_id)]

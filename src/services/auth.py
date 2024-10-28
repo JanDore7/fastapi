@@ -27,6 +27,8 @@ class AuthService:
 
     def decode_access_token(self, token: str) -> dict:
         try:
-            return jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+            return jwt.decode(
+                token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+            )
         except jwt.exceptions.InvalidSignatureError:
             raise HTTPException(status_code=401, detail="Invalid token signature")

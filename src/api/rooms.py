@@ -1,68 +1,37 @@
 from fastapi import APIRouter, Body, Query
 
 from src.database import async_session
-from src.schemas.rooms import RoomsAdd, RoomsPatch, RoomsPut
+from src.schemas.rooms import RoomsAdd, RoomsPatch, RoomsAddRequest, RoomsPatchRequest
 from src.repos.rooms import RoomsRepository
-from src.api.dependencies import PaginationDep
 
 
-router = APIRouter(prefix="/rooms", tags=["Комнаты"])
+
+router = APIRouter(prefix="/hotels", tags=["Комнаты"])
 
 
-@router.get("/{room_id}", summary="Получение комнаты")
-async def get_room(room_id: int):
+@router.get("/{hotel_id}/rooms", summary="Получение всех номеров")
+async def get_rooms(hotel_id: int):
     async with async_session() as session:
-        return await RoomsRepository(session).one_or_none(id=room_id)
+        return await RoomsRepository(session).get_filtered(hotel_id=hotel_id)
 
 
-@router.get("", summary="Получение комнат")
-async def get_rooms(
-    pagination: PaginationDep,
-    title: str | None = Query(None, description="Название или описание отеля"),
-    hotel_id: int | None = Query(None, description="ID отеля"),
-):
-    page_size = pagination.page_size or 3
+@router.get("/{hotel_id}/rooms/{room_id}", summary="Получение комнаты")
+async def get_room(hotel_id: int, room_id: int):
     async with async_session() as session:
-        return await RoomsRepository(session).get_all(
-            hotel_id=hotel_id,
-            title=title,
-            limit=page_size,
-            offset=page_size * (pagination.page_number - 1))
+        return await RoomsRepository(session).one_or_none(id=room_id, hotel_id=hotel_id)
 
 
-
-@router.post("", summary="Создание комнаты")
-async def create_room(data: RoomsAdd = Body(
-    openapi_examples={
-        "1": {
-            "summary": "Создание комнаты 1",
-            "value": {
-                "title": "Комната 1",
-                "description": "Комната 1",
-                "price": 1000,
-                "quantity": 1,
-                "hotel_id": 1
-            }
-        },
-        "2": {
-            "summary": "Создание комнаты 2",
-            "value": {
-                "title": "Комната 2",
-                "description": "Комната 2",
-                "price": 2000,
-                "quantity": 2,
-                "hotel_id": 1
-            }
-
-    }}
-)):
+@router.post("/{hotel_id}/rooms", summary="Создание комнаты")
+async def create_room(hotel_id: int, data: RoomsAddRequest ):
+    _data = RoomsAdd(hotel_id=hotel_id, **data.model_dump())
     async with async_session() as session:
-        result = await RoomsRepository(session).add(data)
+        result = await RoomsRepository(session).add(_data)
         await session.commit()
-        return {"status": "OK", "room": result }
+    return {"status": "OK", "room": result }
 
-@router.put("", summary="Редактирование комнаты")
-async def edit_hotels(hotel_id: int, hotel_data: RoomsPut = Body(
+
+@router.put("/{hotel_id}/rooms/{room_id}", summary="Изменение комнаты")
+async def edit_room(hotel_id: int,room_id: int, room_data: RoomsAddRequest = Body(
     openapi_examples={
         "1": {
             "summary": "Редактирование комнаты ",
@@ -84,29 +53,34 @@ async def edit_hotels(hotel_id: int, hotel_data: RoomsPut = Body(
         }
     }
 )):
+    _data = RoomsAdd(hotel_id=hotel_id, **room_data.model_dump())
     async with async_session() as session:
-        await RoomsRepository(session).edit(hotel_data, id=hotel_id)
+        await RoomsRepository(session).edit(_data, id=room_id)
         await session.commit()
     return {"status": "OK"}
 
 
-@router.patch(
-    "",
-    summary="Редактирование данных о комнате",
-    description="<h1>Тут можно редактировать данные о комнате</h1>",
-)
-async def partially_edit_hotels(hotel_id: int, hotel_data: RoomsPatch):
+@router.patch("/{hotel_id}/rooms/{room_id}", summary="Редактирование комнаты")
+async def partially_edit_room(
+        room_id: int,
+        hotel_id: int,
+        room_data: RoomsPatchRequest
+):
+    _data = RoomsPatch(hotel_id=hotel_id, **room_data.model_dump(exclude_unset=True))
     async with async_session() as session:
         await RoomsRepository(session).partially_edit(
-            hotel_data, exclude_unset=True, id=hotel_id
+            _data,
+            exclude_unset=True,
+            id=room_id,
+            hotel_id=hotel_id
         )
         await session.commit()
     return {"status": "OK"}
 
 
-@router.delete("", summary="Удаление комнаты")
-async def delete_room(room_id: int):
+@router.delete("/{hotel_id}/rooms/{room_id}", summary="Удаление комнаты")
+async def delete_room(hotel_id: int, room_id: int):
     async with async_session() as session:
-        await RoomsRepository(session).delete(id=room_id)
+        await RoomsRepository(session).delete(id=room_id, hotel_id=hotel_id)
         await session.commit()
     return {"status": "OK"}

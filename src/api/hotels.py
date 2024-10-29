@@ -2,7 +2,7 @@ from typing import List
 
 from fastapi import Query, APIRouter, Body
 
-from src.api.dependencies import PaginationDep
+from src.api.dependencies import PaginationDep, DBDep
 from src.schemas.hotels import HotelPATCH, HotelAdd
 from src.database import async_session
 
@@ -20,17 +20,18 @@ async def get_hotel(hotel_id: int):
 @router.get("", summary="Получение списка отелей")
 async def get_hotels(
     pagination: PaginationDep,
+    db: DBDep,
     title: str | None = Query(None, description="Название или описание отеля"),
     location: str | None = Query(None, description="Адрес отеля"),
 ):
     page_size = pagination.page_size or 3
-    async with async_session() as session:
-        return await HotelRepository(session).get_all(
-            location=location,
-            title=title,
-            limit=page_size,
-            offset=page_size * (pagination.page_nuber - 1),
-        )
+
+    return await db.hotels.get_all(
+        location=location,
+        title=title,
+        limit=page_size,
+        offset=page_size * (pagination.page_number - 1),
+    )
 
 
 @router.post("", summary="Создание отеля")

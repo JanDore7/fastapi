@@ -18,7 +18,6 @@ class BaseRepository:
     async def get_all(self, *args, **kwargs):
         return await self.get_filtered()
 
-
     async def one_or_none(self, **kwargs):
         query = select(self.model).filter_by(**kwargs)
         result = await self.session.execute(query)

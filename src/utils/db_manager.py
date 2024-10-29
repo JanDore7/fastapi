@@ -2,6 +2,7 @@ from src.repos.usres import UserRepository
 from src.repos.hotels import HotelRepository
 from src.repos.rooms import RoomsRepository
 
+
 class DBManager:
     def __init__(self, session_factory):
         self.session_factory = session_factory
@@ -14,8 +15,6 @@ class DBManager:
         self.rooms = RoomsRepository(self.session)
 
         return self
-
-
 
     async def __aexit__(self, *args):
         await self.session.rollback()

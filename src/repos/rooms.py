@@ -9,5 +9,3 @@ from src.schemas.rooms import Room
 class RoomsRepository(BaseRepository):
     model = RoomsOrm
     schema = Room
-
-

@@ -28,7 +28,7 @@ class BaseRepository:
 
     async def add(self, data: BaseModel) -> object:
 
-        add_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
+        add_stmt = insert(self.model).values(**data.model_dump(exclude_unset=True)).returning(self.model)
         print(add_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
         result = await self.session.execute(add_stmt)
         model = result.scalars().one()

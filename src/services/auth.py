@@ -32,3 +32,9 @@ class AuthService:
             )
         except jwt.exceptions.InvalidSignatureError:
             raise HTTPException(status_code=401, detail="Invalid token signature")
+        except jwt.exceptions.ExpiredSignatureError:
+            raise HTTPException(status_code=401, detail="Token has expired")
+        except jwt.exceptions.DecodeError:
+            raise HTTPException(status_code=401, detail="Error decoding token")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")

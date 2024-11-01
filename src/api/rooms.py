@@ -20,6 +20,7 @@ async def get_room(hotel_id: int, room_id: int, db: DBDep):
 async def create_room(hotel_id: int, data: RoomsAddRequest, db: DBDep):
     _data = RoomsAdd(hotel_id=hotel_id, **data.model_dump())
     result = await db.rooms.add(_data)
+    await db.commit()
     return {"status": "OK", "room": result}
 
 

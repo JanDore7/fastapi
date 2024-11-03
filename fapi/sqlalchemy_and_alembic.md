@@ -966,3 +966,144 @@ async def get_users_in_partitions(session):
 
 ### [Паттерн DAO ...](DAO.md)
 ### [Паттерн DATA MAPPING ...](DATA_MAPPING.md)
+
+## Common Table Expressions
+
+CTE (Common Table Expressions, или «Общие табличные выражения»)
+в SQL используются для создания временных наборов данных, 
+которые можно повторно использовать в одном запросе. 
+CTE особенно удобны, если требуется разбить сложный запрос на отдельные части 
+или выполнить рекурсивные запросы.
+В SQLAlchemy также можно использовать CTE для упрощения сложных 
+запросов и повышения их читабельности.  
+**1. Использование CTE в чистом SQL** 
+
+В SQL CTE создаются с помощью ключевого слова WITH.
+Это позволяет объявить временную таблицу, которая будет использоваться только в этом запросе.
+**Пример 1. Простое CTE**
+
+Предположим, у нас есть таблица employees с информацией о сотрудниках,
+где хранятся id, name и department_id.
+Мы хотим найти всех сотрудников из конкретного департамента и отсортировать их по имени.
+```aiignore
+WITH department_employees AS (
+    SELECT id, name
+    FROM employees
+    WHERE department_id = 2
+)
+SELECT *
+FROM department_employees
+ORDER BY name;
+
+```
+Здесь department_employees — временная таблица,
+созданная на основе результата запроса. 
+Во втором SELECT мы уже ссылаемся на неё как на отдельную таблицу.  
+
+**Пример 2. Рекурсивное CTE**
+
+Рекурсивные CTE полезны, когда нужно, например, получить данные о структуре компании 
+(например, иерархию сотрудников).
+```aiignore
+WITH RECURSIVE employee_hierarchy AS (
+    SELECT id, name, manager_id
+    FROM employees
+    WHERE manager_id IS NULL  -- Начинаем с начальников без руководителей
+    
+    UNION ALL
+    
+    SELECT e.id, e.name, e.manager_id
+    FROM employees e
+    INNER JOIN employee_hierarchy eh ON e.manager_id = eh.id
+)
+SELECT *
+FROM employee_hierarchy;
+
+```
+В этом примере employee_hierarchy используется для получения всех сотрудников 
+вместе с их подчиненными.
+
+**2. Использование CTE в SQLAlchemy**
+
+SQLAlchemy поддерживает CTE через метод cte().
+Давайте рассмотрим, как работать с CTE в SQLAlchemy на примере аналогичных запросов.
+Подготовка  
+
+Предположим, что у нас уже настроено асинхронное соединение с базой данных
+и определена таблица employees через SQLAlchemy ORM.
+
+```aiignore
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import Column, Integer, String, ForeignKey, select
+from sqlalchemy.orm import declarative_base, relationship
+
+Base = declarative_base()
+
+class Employee(Base):
+    __tablename__ = 'employees'
+    
+    id = Column(Integer, primary_key=True)
+    name = Column(String)
+    department_id = Column(Integer, ForeignKey('departments.id'))
+    manager_id = Column(Integer, ForeignKey('employees.id'), nullable=True)
+
+    manager = relationship('Employee', remote_side=[id], backref='subordinates')
+
+```
+**Пример 1. Простое CTE с SQLAlchemy**  
+
+Создадим CTE для выборки сотрудников из определенного департамента и сортировки по имени.
+
+```aiignore
+from sqlalchemy.future import select
+from sqlalchemy import cte
+
+async def get_department_employees(session: AsyncSession, department_id: int):
+    # Создаем CTE
+    department_employees = (
+        select(Employee.id, Employee.name)
+        .where(Employee.department_id == department_id)
+        .cte("department_employees")
+    )
+    
+    # Используем CTE в основном запросе
+    stmt = select(department_employees).order_by(department_employees.c.name)
+    
+    result = await session.execute(stmt)
+    return result.fetchall()
+
+```
+Здесь cte("department_employees") создает временную таблицу, 
+которую можно использовать в других запросах. Этот пример аналогичен простому CTE из SQL.  
+Пример 2. Рекурсивное CTE с SQLAlchemy  
+
+Для построения иерархии сотрудников с помощью рекурсивного CTE 
+в SQLAlchemy нужно задать объединение union_all.  
+
+```aiignore
+from sqlalchemy import union_all
+
+async def get_employee_hierarchy(session: AsyncSession):
+    # Базовый запрос для начального уровня (руководителей без менеджеров)
+    base_query = select(Employee.id, Employee.name, Employee.manager_id).where(Employee.manager_id == None)
+    
+    # Рекурсивный запрос для подчиненных сотрудников
+    recursive_query = select(Employee.id, Employee.name, Employee.manager_id).join(
+        employee_hierarchy, Employee.manager_id == employee_hierarchy.c.id
+    )
+    
+    # Объединяем запросы
+    employee_hierarchy = base_query.union_all(recursive_query).cte(recursive=True)
+    
+    # Основной запрос для выборки иерархии
+    stmt = select(employee_hierarchy)
+    
+    result = await session.execute(stmt)
+    return result.fetchall()
+
+```
+Здесь:  
+
+**base_query** выбирает всех сотрудников, у которых нет менеджера.
+**recursive_query** присоединяет подчиненных к базовому запросу.
+**employee_hierarchy** объединяет базовый и рекурсивный запросы через union_all.

@@ -8,7 +8,16 @@ from src.api.dependencies import UserIdDepends
 router = APIRouter(prefix="/bookings", tags=["Бронирования"])
 
 
-# noinspection PyTypeChecker
+@router.get("/bookings", summary="Получение бронирования")
+async def get_all_booking(db: DBDep):
+    return await db.bookings.get_all()
+
+
+@router.get("/bookings/me", summary="Мои бронирования")
+async def get_all_booking_me(user_id: UserIdDepends, db: DBDep):
+    return await db.bookings.get_filtered(user_id=user_id)
+
+
 @router.post('/bookings', summary="Создание бронирования")
 async def add_booking(
         db: DBDep,
@@ -27,13 +36,3 @@ async def add_booking(
     return {"status": "OK", "data": booking}
 
 
-@router.get("/bookings", summary="Получение бронирования")
-async def get_all_booking(db: DBDep):
-    bookings = await db.bookings.get_all()
-    return {"bookings": bookings}
-
-
-@router.get("/bookings/me", summary="Мои бронирования")
-async def get_all_booking_me(user_id: UserIdDepends, db: DBDep):
-    bookings = await db.bookings.get_filtered(user_id=user_id)
-    return {"bookings": bookings}

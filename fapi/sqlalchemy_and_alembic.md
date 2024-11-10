@@ -1075,6 +1075,8 @@ async def get_department_employees(session: AsyncSession, department_id: int):
 ```
 Здесь cte("department_employees") создает временную таблицу, 
 которую можно использовать в других запросах. Этот пример аналогичен простому CTE из SQL.  
+### ВАЖНО, обращение к столбцам из временной таблицы должно быть через cte.c.
+
 Пример 2. Рекурсивное CTE с SQLAlchemy  
 
 Для построения иерархии сотрудников с помощью рекурсивного CTE 
@@ -1107,3 +1109,4 @@ async def get_employee_hierarchy(session: AsyncSession):
 **base_query** выбирает всех сотрудников, у которых нет менеджера.
 **recursive_query** присоединяет подчиненных к базовому запросу.
 **employee_hierarchy** объединяет базовый и рекурсивный запросы через union_all.
+

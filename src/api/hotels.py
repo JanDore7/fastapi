@@ -1,3 +1,4 @@
+from datetime import date
 from typing import List
 
 from fastapi import Query, APIRouter, Body
@@ -20,10 +21,13 @@ async def get_hotels(
     db: DBDep,
     title: str | None = Query(None, description="Название или описание отеля"),
     location: str | None = Query(None, description="Адрес отеля"),
+    date_from: date | None = Query(None, description="Дата заезда", example='2024-11-01'),
+    date_to: date | None = Query(None, description="Дата выезда", example='2024-11-07'),
 ):
     page_size = pagination.page_size or 3
-
-    return await db.hotels.get_all(
+    return await db.hotels.get_filtered_by_time(
+        date_from=date_from,
+        date_to=date_to,
         location=location,
         title=title,
         limit=page_size,

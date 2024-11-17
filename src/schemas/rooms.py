@@ -6,6 +6,7 @@ class RoomsAddRequest(BaseModel):
     description: str | None = Field(None, description="Описание комнаты")
     price: int = Field(description="Цена комнаты")
     quantity: int = Field(description="Количество комнат")
+    facilities_ids: list[int] | None = Field(None, description="ID услуг")
 
 
 class RoomsAdd(BaseModel):
@@ -27,6 +28,7 @@ class RoomsPatchRequest(BaseModel):
     description: str | None = Field(None, description="Описание комнаты")
     price: int | None = Field(None, description="Цена комнаты")
     quantity: int | None = Field(None, description="Количество комнат")
+
 
 
 class RoomsPatch(BaseModel):

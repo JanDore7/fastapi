@@ -31,12 +31,21 @@ class BaseRepository:
         return self.schema.model_validate(model)
 
     async def add(self, data: BaseModel) -> object:
-
         add_stmt = insert(self.model).values(**data.model_dump(exclude_unset=True)).returning(self.model)
         print(add_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
         result = await self.session.execute(add_stmt)
         model = result.scalars().one()
         return self.schema.model_validate(model)
+
+
+    async def add_bulk(self, data: list[BaseModel]) -> None:
+        add_stmt = insert(self.model).values([item.model_dump(exclude_unset=True) for item in data]).returning(self.model) #insert(self.model).values(**item.model_dump(exclude_unset=True)).returning(self.model)
+        print(add_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
+        await self.session.execute(add_stmt)
+
+
+
+
 
     async def edit(self, data: BaseModel, **filter_by):
         update_stmt = (

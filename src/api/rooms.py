@@ -48,6 +48,7 @@ async def edit_room(
                     "description": "Комната new - 1",
                     "price": 11500,
                     "quantity": 1,
+                    "facilities_ids": [1, 2],
                 },
             },
             "2": {
@@ -57,6 +58,7 @@ async def edit_room(
                     "description": "Комната new - 2",
                     "price": 2000,
                     "quantity": 2,
+                    "facilities_ids": [],
                 },
             },
         }
@@ -64,6 +66,8 @@ async def edit_room(
 ):
     _data = RoomsAdd(hotel_id=hotel_id, **room_data.model_dump())
     await db.rooms.edit(_data, id=room_id)
+    await db.rooms_facilities.set_room_facilities(room_id, facilities=room_data.facilities_ids)
+    await db.commit()
     return {"status": "OK"}
 
 
@@ -71,10 +75,14 @@ async def edit_room(
 async def partially_edit_room(
     room_id: int, hotel_id: int, room_data: RoomsPatchRequest, db: DBDep
 ):
-    _data = RoomsPatch(hotel_id=hotel_id, **room_data.model_dump(exclude_unset=True))
+    _room_data_dict = room_data.model_dump(exclude_unset=True)
+    _data = RoomsPatch(hotel_id=hotel_id, **_room_data_dict)
     await db.rooms.partially_edit(
         _data, exclude_unset=True, id=room_id, hotel_id=hotel_id
     )
+    if "facilities_ids" in _room_data_dict:
+        await db.rooms_facilities.set_room_facilities(room_id, facilities=_room_data_dict["facilities_ids"])
+    await db.commit()
     return {"status": "OK"}
 
 

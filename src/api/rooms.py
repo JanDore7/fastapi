@@ -19,7 +19,7 @@ async def get_rooms(hotel_id: int,
 
 @router.get("/{hotel_id}/rooms/{room_id}", summary="Получение комнаты")
 async def get_room(hotel_id: int, room_id: int, db: DBDep):
-    return await db.rooms.one_or_none(id=room_id, hotel_id=hotel_id)
+    return await db.rooms.one_or_none1(id=room_id, hotel_id=hotel_id)
 
 
 @router.post("/{hotel_id}/rooms", summary="Создание комнаты")

@@ -1,6 +1,13 @@
+import functools
+import json
 from datetime import date
+from typing import Any
+from typing import Callable
+
 from fastapi import APIRouter, Body, Query
 
+from src.connectors import redis_connector
+from src.connectors.redis_connector import RedisManager
 from src.schemas.facilities import RoomFacilityAdd
 from src.schemas.rooms import RoomsAdd, RoomsPatch, RoomsAddRequest, RoomsPatchRequest
 from src.api.dependencies import DBDep

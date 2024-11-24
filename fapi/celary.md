@@ -199,7 +199,201 @@ celery -A celery_app purge
 celery -A celery_app control shutdown
 ```
 
+**Базовая команда запуска Celery**
+```angular2html
+celery --app=<имя_приложения> worker [дополнительные_аргументы]
+```
+
+Аргументы и их описание:  
+**1. --app=<имя_приложения>**
+
+Указывает путь к объекту Celery, который инициализирует приложение.  
+
+**Формат**:  
+<имя_модуля>: имя файла без .py, например, celery_app, если объект находится в celery_app.py.  
+<имя_модуля>:<имя_объекта>: если объект Celery в модуле имеет отличное имя, например, celery_app:custom_celery.
+
+**Примеры**:
+--app=celery_app  
+--app=project.celery:app
+
+**2. worker**
+
+Команда для запуска Celery Worker.  
+Обязательный аргумент: сообщает Celery, что мы запускаем именно worker (рабочий процесс для выполнения задач).  
+
+**3. --loglevel=<уровень>**
+
+Указывает уровень детализации логов.  
+Доступные значения:  
+**debug**: максимальная детализация (для отладки).  
+**info** (по умолчанию): общая информация о задачах.  
+**warning**: предупреждения.  
+**error**: ошибки.  
+**critical**: только критические ошибки.  
+Пример:
+```angular2html
+celery --app=celery_app worker --loglevel=debug
+```
+**4. -Q, --queues=<очереди>**
+
+Указывает конкретные очереди, которые должен обслуживать worker.  
+Зачем:  
+Если в вашем проекте есть несколько очередей, worker может обслуживать только те, которые вы указали.
+Пример:
+```angular2html
+celery --app=celery_app worker --queues=default,high_priority
+```
+
+**5. -c, --concurrency=<число>**
+
+Указывает число параллельных потоков/процессов worker.  
+По умолчанию: количество ядер процессора.  
+Пример:
+```angular2html
+celery --app=celery_app worker --concurrency=4
+```
+
+**6. -n, --hostname=<имя>**
+
+Устанавливает уникальное имя для worker.  
+Зачем:  
+Если вы запускаете несколько worker на одном сервере, каждому нужно задать уникальное имя.  
+Пример:
+```angular2html
+celery --app=celery_app worker --hostname=worker1@%h
+```
+
+**7. --autoscale=<макс>,<мин>**
+
+Динамически меняет количество рабочих потоков.  
+Формат: максимум_потоков,минимум_потоков.  
+Пример:
+```angular2html
+celery --app=celery_app worker --autoscale=10,3
+```
+
+**8. --detach**
+
+Запускает worker как фоновый процесс (демон).  
+Пример:
+```angular2html
+celery --app=celery_app worker --detach
+```
+
+**9. --pidfile=<путь>**
+
+Указывает путь для сохранения PID-файла worker.  
+Зачем:  
+Удобно для управления процессами worker.  
+Пример:  
+```angular2html
+celery --app=celery_app worker --detach --pidfile=/var/run/celery/%n.pid
+```
+
+
+**10. --time-limit=<секунды>**
+
+Устанавливает максимальное время выполнения задачи.  
+Пример:
+```angular2html
+celery --app=celery_app worker --time-limit=300
+```
+
+**11. --soft-time-limit=<секунды>**
+
+Устанавливает мягкий лимит времени выполнения задачи. После его истечения задача будет прервана аккуратно.  
+Пример:
+```angular2html
+celery --app=celery_app worker --soft-time-limit=200
+```
+
+Полный пример команды
+```angular2html
+celery --app=celery_app worker \
+  --loglevel=info \
+  --concurrency=4 \
+  --queues=default,priority \
+  --hostname=worker1@%h \
+  --autoscale=8,2 \
+  --detach \
+  --pidfile=/var/run/celery/%n.pid \
+  --time-limit=300 \
+  --soft-time-limit=200
+
+```
+
+Другие команды для Celery
+
+Запуск задач в фоне:
+```angular2html
+celery --app=celery_app beat --loglevel=info
+```
+**beat**: запускает планировщик задач для выполнения периодических задач.
+
+Очистка сообщений worker:
+```angular2html
+celery --app=celery_app purge
+```
+
+Мониторинг worker:
+```angular2html
+celery --app=celery_app status
+
+```
+Отмена выполнения задачи:
+```angular2html
+celery --app=celery_app control revoke <task_id>
+```
+**Пример проекта**
+Файловая структура:
+```angular2html
+project/
+├── celery_app.py  # Конфигурация Celery
+└── tasks.py       # Определение задач
+
+```
+
+celery_app.py:
+```angular2html
+from celery import Celery
+
+app = Celery('project_name', broker='redis://localhost:6379/0')
+
+app.conf.update(
+    result_backend='redis://localhost:6379/0',
+    task_routes={
+        'tasks.high_priority_task': {'queue': 'high_priority'},
+        'tasks.default_task': {'queue': 'default'},
+    }
+)
+
+app.autodiscover_tasks(['tasks'])
+
+```
+
+tasks.py:
+```angular2html
+from celery_app import app
+
+@app.task
+def default_task():
+    print("Default task executed.")
+
+@app.task
+def high_priority_task():
+    print("High priority task executed.")
+
+```
+Запуск worker:
+```angular2html
+celery --app=celery_app worker --loglevel=info --queues=default
+```
+
+
 **Заключение**
 
 Celery — это мощный инструмент для асинхронной обработки задач. В этом гайде мы рассмотрели основы и продвинутые возможности. Вы можете настроить Celery под свои нужды, используя различные брокеры и бекенды, а также управлять сложными зависимостями задач.
+
+
 

@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     REDIS_PORT: int
 
     @property
+    def REDIS_URL(self):
+        return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}"  # Если есть пользователь и пароль, то сначала они будут указаны. Так же как в дб
+
+    @property
     def DB_URL(self):
         return f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
 

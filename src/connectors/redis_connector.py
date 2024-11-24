@@ -3,12 +3,14 @@ import redis.asyncio as redis
 
 from redis.exceptions import RedisError
 
+from src.config import settings
+
 
 class RedisManager:
     def __init__(self, host: str, port: str):
         self.host = host
         self.port = port
-        self.redis_url = f"redis://{self.host}:{self.port}"
+        self.redis_url = settings.REDIS_URL
         self.max_retries = 5
         self.retry_delay = 3
         self.redis = None
@@ -22,14 +24,18 @@ class RedisManager:
                 return  # Выход из метода после успешного подключения
             except RedisError as e:
                 retries += 1
-                print(f"Ошибка подключения к Redis: {e}. Повторная попытка ({retries}/{self.max_retries})...")
+                print(
+                    f"Ошибка подключения к Redis: {e}. Повторная попытка ({retries}/{self.max_retries})..."
+                )
                 await asyncio.sleep(self.retry_delay)
             except Exception as e:
                 retries += 1
-                print(f"Неожиданная ошибка: {e}. Повторная попытка ({retries}/{self.max_retries})...")
+                print(
+                    f"Неожиданная ошибка: {e}. Повторная попытка ({retries}/{self.max_retries})..."
+                )
                 await asyncio.sleep(self.retry_delay)
 
-        print('Не удалось подключиться к Redis после нескольких попыток.')
+        print("Не удалось подключиться к Redis после нескольких попыток.")
 
     async def set(self, key: str, value: str, expire: int = None):
         if self.redis is None:

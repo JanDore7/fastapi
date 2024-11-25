@@ -1,8 +1,11 @@
+import asyncio
 from time import sleep
 from PIL import Image
 import os
 
+from src.database import async_session_null_pool
 from src.tasks.celery_app import celery_app_instance
+from src.utils.db_manager import DBManager
 
 
 @celery_app_instance.task
@@ -13,6 +16,11 @@ def test_task():
 
 @celery_app_instance.task
 def resize_image(image_path: str):
+    """
+    Изменяет разрешение изображения
+    :param image_path:
+    :return:
+    """
     sizes = [1000, 500, 200]
     output_folder = "src/static/images"
 
@@ -39,3 +47,23 @@ def resize_image(image_path: str):
     print(
         f"Изображение сохранено в следующих размерах: {sizes} в папке {output_folder}"
     )
+
+
+async def get_bookings_with_to_day_checkin_helper():
+    """
+    Функция получения бронирований с сегодняшним заселением
+    return:
+    """
+    print("Запустилась")
+    async with DBManager(session_factory=async_session_null_pool) as db:
+        bookings = await db.get_bookings_with_today_checkin()
+        print(f"{bookings=}")
+
+
+@celery_app_instance.task(name="booking_to_day_checkin")
+def send_email_to_users_with_to_day_checkin():
+    """
+    задача на периодическое получение данных. (Настройка в celery_app.py)
+    :return:
+    """
+    asyncio.run(get_bookings_with_to_day_checkin_helper())

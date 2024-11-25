@@ -16,12 +16,15 @@ router = APIRouter(prefix="/hotels", tags=["Комнаты"])
 
 
 @router.get("/{hotel_id}/rooms", summary="Получение всех номеров")
-async def get_rooms(hotel_id: int,
-                    db: DBDep,
-                    date_from: date = Query(example="2024-11-01"),
-                    date_to: date = Query(example="2024-11-07")
-                    ):
-    return await db.rooms.get_filtered_by_time(hotel_id=hotel_id, date_from=date_from, date_to=date_to)
+async def get_rooms(
+    hotel_id: int,
+    db: DBDep,
+    date_from: date = Query(example="2024-11-01"),
+    date_to: date = Query(example="2024-11-07"),
+):
+    return await db.rooms.get_filtered_by_time(
+        hotel_id=hotel_id, date_from=date_from, date_to=date_to
+    )
 
 
 @router.get("/{hotel_id}/rooms/{room_id}", summary="Получение комнаты")
@@ -34,7 +37,10 @@ async def create_room(hotel_id: int, data: RoomsAddRequest, db: DBDep):
     _data = RoomsAdd(hotel_id=hotel_id, **data.model_dump())
     result = await db.rooms.add(_data)
 
-    rooms_facilities_data = [RoomFacilityAdd(rooms_id=result.id, facilities_id=f_id) for f_id in data.facilities_ids]
+    rooms_facilities_data = [
+        RoomFacilityAdd(rooms_id=result.id, facilities_id=f_id)
+        for f_id in data.facilities_ids
+    ]
 
     await db.rooms_facilities.add_bulk(rooms_facilities_data)
     await db.commit()
@@ -73,7 +79,9 @@ async def edit_room(
 ):
     _data = RoomsAdd(hotel_id=hotel_id, **room_data.model_dump())
     await db.rooms.edit(_data, id=room_id)
-    await db.rooms_facilities.set_room_facilities(room_id, facilities=room_data.facilities_ids)
+    await db.rooms_facilities.set_room_facilities(
+        room_id, facilities=room_data.facilities_ids
+    )
     await db.commit()
     return {"status": "OK"}
 
@@ -88,7 +96,9 @@ async def partially_edit_room(
         _data, exclude_unset=True, id=room_id, hotel_id=hotel_id
     )
     if "facilities_ids" in _room_data_dict:
-        await db.rooms_facilities.set_room_facilities(room_id, facilities=_room_data_dict["facilities_ids"])
+        await db.rooms_facilities.set_room_facilities(
+            room_id, facilities=_room_data_dict["facilities_ids"]
+        )
     await db.commit()
     return {"status": "OK"}
 

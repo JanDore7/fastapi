@@ -7,14 +7,15 @@ from src.database import engine
 from src.models.hotels import HotelsOrm
 from sqlalchemy import select, insert
 
+from src.repos.mapper.base import DataMapper
+from src.repos.mapper.mappers import HotelDataMapper
 from src.repos.utils import rooms_ids_for_booking
 from src.schemas.hotels import Hotel
 
 
 class HotelRepository(BaseRepository):
     model = HotelsOrm
-    schema = Hotel
-
+    mapper: DataMapper = HotelDataMapper
 
     async def add(self, data: List[Hotel]) -> object:
         models_orm = []
@@ -25,17 +26,10 @@ class HotelRepository(BaseRepository):
             print(add_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
             result = await self.session.execute(add_stmt)
             models_orm.append(result.scalar())
-        return [self.schema.model_validate(model) for model in models_orm]
-
+        return [self.mapper.map_to_schema(model) for model in models_orm]
 
     async def get_filtered_by_time(
-            self,
-            date_from: date,
-            date_to: date,
-            location,
-            title,
-            limit,
-            offset
+        self, date_from: date, date_to: date, location, title, limit, offset
     ) -> List[Hotel]:
         rooms_ids_to_get = rooms_ids_for_booking(date_from=date_from, date_to=date_to)
         hotels_ids_to_get = (
@@ -51,4 +45,4 @@ class HotelRepository(BaseRepository):
             query = query.filter(HotelsOrm.location.op("~")(rf"(?i)\y{location}\y"))
         query = query.limit(limit).offset(offset)
         result = await self.session.execute(query)
-        return [Hotel.model_validate(hotel, from_attributes=True) for hotel in result.scalars().all()]
+        return [self.mapper.map_to_schema(hotel) for hotel in result.scalars().all()]

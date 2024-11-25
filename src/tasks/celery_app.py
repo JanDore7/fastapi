@@ -10,6 +10,7 @@ celery_app_instance = Celery(
     include=[
         "src.tasks.tasks",
     ],
+    backend=settings.REDIS_URL,
 )
 
 # Запуск celery --app=src.tasks.celery_app:celery_app_instance worker

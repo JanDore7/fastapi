@@ -22,7 +22,6 @@ class RoomsAdd(BaseModel):
 class Room(RoomsAdd):
     id: int = Field(..., description="ID комнаты")
 
-    model_config = ConfigDict(from_attributes=True)
 
 class RoomWithRelationship(Room):
     facilities: list[Facilities]
@@ -34,7 +33,6 @@ class RoomsPatchRequest(BaseModel):
     price: int | None = Field(None, description="Цена комнаты")
     quantity: int | None = Field(None, description="Количество комнат")
     facilities_ids: list[int] | None = Field([], description="ID услуг")
-
 
 
 class RoomsPatch(BaseModel):

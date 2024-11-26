@@ -43,7 +43,7 @@ markers =
 minversion = 7.0
 ```
 
-![Таблица](images/photo_2024-09-26_03-17-11.jpg)
+![Таблица.](images/2024-11-26_06-12.jpg)
 
 Описание параметров
 **1. testpaths**

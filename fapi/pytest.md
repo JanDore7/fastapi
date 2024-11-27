@@ -202,3 +202,10 @@ pytest --cov=имя_пакета
 pip install pytest-html
 pytest --html=report.html
 ```
+# Важно
+При работе с алхимией стоит переопределить движок .
+
+engine_null_pool = create_async_engine(settings.DB_URL, pool_class=NullPool)
+async_session_null_pool = async_sessionmaker(engine_null_pool, expire_on_commit=False)
+
+**NullPool** отключает использование пула соединений. Это значит, что каждый раз при выполнении запроса создаётся новое соединение с базой данных, а после выполнения запроса соединение закрывается.

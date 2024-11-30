@@ -25,32 +25,42 @@ MacOS: https://dbeaver.io/download/ (скачайте и запустите)
 
 
 Подключение из консоли:
-> sudo -u postgres psql
-
+```
+sudo -u postgres psql
+```
 Посмотреть всех пользователей:
-> \du
-
+```
+\du
+```
 Список баз данных:
-> \l
-
+```
+\l
+```
 Создать нового пользователя:
-> CREATE USER <username> WITH PASSWORD '<password>';
-
+```
+CREATE USER <username> WITH PASSWORD '<password>';
+```
 Создать новую базу данных:
-> CREATE DATABASE <database_name>;
-
+```
+CREATE DATABASE <database_name>;
+```
 Дать права на базу данных:
-> GRANT ALL PRIVILEGES ON DATABASE <database_name> TO <username>;
-
+```
+GRANT ALL PRIVILEGES ON DATABASE <database_name> TO <username>;
+```
 Если нужно, чтобы пользователь стал владельцем базы данных:
-> ALTER DATABASE <database_name> OWNER TO <username>;
-
+```
+ALTER DATABASE <database_name> OWNER TO <username>;
+```
 Подключиться к базе данных под новым пользователем
 Выйдите из psql:
-> \q
-
+```
+\q
+```
 Подключитесь под новым пользователем:
-> psql -h <host> -U <username> -d <database_name>
+```
+psql -h <host> -U <username> -d <database_name>
+```
 
 
 ***[sqlalchemy and alembic ...](sqlalchemy_and_alembic.md)***

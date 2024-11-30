@@ -8,7 +8,7 @@ engine = create_async_engine(settings.DB_URL)
 
 # Создаем движок для работы с задачами celery pool_class=NullPool — указывает, что движок не будет использовать пул
 # подключений, а будет открывать новое соединение для каждого запроса.
-engine_null_pool = create_async_engine(settings.DB_URL, pool_class=NullPool)
+engine_null_pool = create_async_engine(settings.DB_URL, poolclass=NullPool)
 
 
 # Создаем асинхронный фабрикатор сессий

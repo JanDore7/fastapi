@@ -209,3 +209,99 @@ engine_null_pool = create_async_engine(settings.DB_URL, pool_class=NullPool)
 async_session_null_pool = async_sessionmaker(engine_null_pool, expire_on_commit=False)
 
 **NullPool** отключает использование пула соединений. Это значит, что каждый раз при выполнении запроса создаётся новое соединение с базой данных, а после выполнения запроса соединение закрывается.
+
+
+**ФИКСТУРА**
+
+**Фикстура в Pytest** — это способ подготовки тестовой среды перед выполнением тестов. Фикстуры помогают организовать повторяющиеся действия, такие как настройка базы данных, создание временных файлов или конфигурация тестового окружения, и делают код тестов более читаемым и поддерживаемым.  
+
+Фикстуры определяются с помощью декоратора **@pytest.fixture** и могут возвращать данные, которые затем используются в тестах. 
+
+Определение фикстуры: Используйте декоратор @pytest.fixture перед функцией, чтобы объявить её как фикстуру.
+```angular2html
+@pytest.fixture
+def sample_fixture():
+    return {"key": "value"}  # данные, доступные тесту
+```
+
+Использование фикстуры в тесте: Передайте имя фикстуры как аргумент функции теста.
+```angular2html
+def test_example(sample_fixture):
+    assert sample_fixture["key"] == "value"
+```
+Настройка более сложной логики: Если требуется выполнять действия до и после теста, можно использовать конструкцию yield.
+```angular2html
+@pytest.fixture
+def resource():
+    # Настройка
+    resource = {"status": "ready"}
+    yield resource  # Данные для теста
+    # Очистка
+    resource["status"] = "closed"
+```
+
+Декоратор @pytest.fixture поддерживает различные параметры для управления поведением фикстур:  
+
+**scope**: Определяет, как долго будет существовать фикстура. Возможные значения:  
+    **"function"** (по умолчанию): фикстура создаётся заново для каждой тестовой функции.  
+    **"class"**: фикстура используется для всех тестов в классе.  
+    **"module"**: фикстура используется для всех тестов в модуле.  
+    **"package"**: фикстура используется для всех тестов в пакете.  
+    **"session"**: фикстура используется для всех тестов в сессии.  
+
+```angular2html
+@pytest.fixture(scope="module")
+def shared_resource():
+    return {"data": 42}
+```
+
+**autouse**: Если True, фикстура будет автоматически применяться ко всем тестам, без необходимости явного указания её имени.
+```angular2html
+@pytest.fixture(autouse=True)
+def setup_environment():
+    print("Фикстура выполнена")
+```
+
+**params**: Позволяет передать набор параметров для фикстуры. Каждый тест будет выполнен с каждым параметром.
+```angular2html
+@pytest.fixture(params=[1, 2, 3])
+def param_fixture(request):
+    return request.param
+```
+
+Использование в тестах:
+```angular2html
+def test_with_params(param_fixture):
+    assert param_fixture in [1, 2, 3]
+```
+
+**name**: Позволяет задать кастомное имя фикстуре, которое будет использоваться в тестах.
+```angular2html
+@pytest.fixture(name="custom_fixture")
+def sample_fixture():
+    return "custom value"
+```
+
+Использование:
+```angular2html
+def test_custom_fixture(custom_fixture):
+    assert custom_fixture == "custom value"
+```
+
+**Пример сложной фикстуры**
+```angular2html
+import pytest
+
+@pytest.fixture(scope="function", autouse=False)
+def database():
+    # Настройка
+    db = {"connection": "open"}
+    print("Открытие соединения с базой данных")
+    yield db
+    # Очистка
+    db["connection"] = "closed"
+    print("Закрытие соединения с базой данных")
+
+def test_database_operation(database):
+    assert database["connection"] == "open"
+```

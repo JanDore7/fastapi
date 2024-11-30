@@ -12,10 +12,11 @@ from fastapi_cache.backends.redis import RedisBackend
 import sys
 from pathlib import Path
 
-from src.api.dependencies import get_db
 
 sys.path.append(str(Path(__file__).parent.parent))
 from src.init import redis_manager
+
+# from src.api.dependencies import get_db
 
 from src.api.auth import router as router_auth
 from src.api.hotels import router as router_hotels

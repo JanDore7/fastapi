@@ -80,6 +80,7 @@ async def create_hotels(
     ),
 ):
     result = await db.hotels.add(hotel_data)
+    await db.commit()
     return {"status": "OK", "data": result}
 
 

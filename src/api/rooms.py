@@ -43,6 +43,7 @@ async def create_room(hotel_id: int, data: RoomsAddRequest, db: DBDep):
     ]
 
     await db.rooms_facilities.add_bulk(rooms_facilities_data)
+
     await db.commit()
     return {"status": "OK", "room": result}
 

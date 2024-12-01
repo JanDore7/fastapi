@@ -5,12 +5,14 @@ from sqlalchemy.orm import selectinload, joinedload
 
 from src.repos.base import BaseRepository
 from src.models.rooms import RoomsOrm
+from src.repos.mapper.mappers import RoomsDataMapper, RoomDataWithRelationshipMapper
 from src.repos.utils import rooms_ids_for_booking
 from src.schemas.rooms import RoomWithRelationship
 
 
 class RoomsRepository(BaseRepository):
     model = RoomsOrm
+    mapper = RoomsDataMapper
 
     async def get_filtered_by_time(self, hotel_id, date_from: date, date_to: date):
         rooms_ids_to_get = rooms_ids_for_booking(date_from, date_to, hotel_id)
@@ -23,7 +25,7 @@ class RoomsRepository(BaseRepository):
 
         result = await self.session.execute(query)
         return [
-            RoomWithRelationship.model_validate(model)
+            RoomDataWithRelationshipMapper.map_to_schema(model)
             for model in result.unique().scalars().all()
         ]
 
@@ -36,4 +38,4 @@ class RoomsRepository(BaseRepository):
 
         query = select(self.model).options(selectinload(self.model.facilities))
         result = await self.session.execute(query)
-        return RoomWithRelationship.model_validate(model)
+        return RoomDataWithRelationshipMapper.map_to_schema(model)

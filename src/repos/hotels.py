@@ -10,14 +10,13 @@ from sqlalchemy import select, insert
 from src.repos.mapper.base import DataMapper
 from src.repos.mapper.mappers import HotelDataMapper
 from src.repos.utils import rooms_ids_for_booking
-from src.schemas.hotels import Hotel
 
 
 class HotelRepository(BaseRepository):
     model = HotelsOrm
     mapper: DataMapper = HotelDataMapper
 
-    async def add(self, data: List[Hotel]) -> object:
+    async def add(self, data: List[mapper.schema]) -> object:
         models_orm = []
         for model in data:
             add_stmt = (
@@ -30,7 +29,7 @@ class HotelRepository(BaseRepository):
 
     async def get_filtered_by_time(
         self, date_from: date, date_to: date, location, title, limit, offset
-    ) -> List[Hotel]:
+    ) -> List[mapper.schema]:
         rooms_ids_to_get = rooms_ids_for_booking(date_from=date_from, date_to=date_to)
         hotels_ids_to_get = (
             select(RoomsOrm.hotel_id)

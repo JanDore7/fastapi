@@ -39,10 +39,11 @@ async def create_room(hotel_id: int, data: RoomsAddRequest, db: DBDep):
 
     rooms_facilities_data = [
         RoomFacilityAdd(rooms_id=result.id, facilities_id=f_id)
-        for f_id in data.facilities_ids
+        for f_id in (data.facilities_ids or [])
     ]
 
-    await db.rooms_facilities.add_bulk(rooms_facilities_data)
+    if rooms_facilities_data:  # Только если есть данные для добавления
+        await db.rooms_facilities.add_bulk(rooms_facilities_data)
 
     await db.commit()
     return {"status": "OK", "room": result}

@@ -24,7 +24,7 @@ async def get_hotels(
     title: str | None = Query(None, description="Название или описание отеля"),
     location: str | None = Query(None, description="Адрес отеля"),
     date_from: date | None = Query(
-        None, description="Дата заезда", example="2024-11-01"
+        None, description="Дата заезда", exampls="2024-11-01"
     ),
     date_to: date | None = Query(None, description="Дата выезда", example="2024-11-07"),
 ):

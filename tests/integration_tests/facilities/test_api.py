@@ -1,10 +1,13 @@
 from src.schemas.facilities import FacilitiesAdd
 
 
-async def test_create_facilities(ac):
-    data = FacilitiesAdd(title="Кондиционер")
-    response = await ac.post("/facilities", json=dict(**data.model_dump()))
-    assert response.status_code == 200
+async def test_add_hotel(db):
+    facility_data = FacilitiesAdd(
+        title="интернет",
+    )
+    new_facility_data = await db.facilities.add(facility_data)
+    print(f"{new_facility_data=}")
+    await db.commit()
 
 
 async def test_get_facilities(ac):

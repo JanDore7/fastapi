@@ -18,7 +18,7 @@ async def get_hotel(hotel_id: int, db: DBDep):
 
 
 @router.get("", summary="Получение списка отелей")
-# @cache(expire=100)
+@cache(expire=100)
 async def get_hotels(
     pagination: PaginationDep,
     db: DBDep,

@@ -3,47 +3,43 @@ from datetime import date
 from src.schemas.bookings import BookingAdd
 
 
-async def test_CURD(db):
-    user_id = (await db.users.get_all())[
-        0
-    ].id  # await db.users.get_all() отдельная операция и не может быть вызвана по индексу
+async def test_booking_crud(db):
+    user_id = (await db.users.get_all())[0].id
     room_id = (await db.rooms.get_all())[0].id
     booking_data = BookingAdd(
         user_id=user_id,
         room_id=room_id,
-        date_from=date(2024, 11, 1),
-        date_to=date(2024, 12, 1),
-        price=199,
+        date_from=date(year=2024, month=8, day=10),
+        date_to=date(year=2024, month=8, day=20),
+        price=100,
     )
     new_booking = await db.bookings.add(booking_data)
 
+    # получить эту бронь и убедиться что она есть
     booking = await db.bookings.one_or_none(id=new_booking.id)
-
     assert booking
     assert booking.id == new_booking.id
     assert booking.room_id == new_booking.room_id
     assert booking.user_id == new_booking.user_id
+    # а еще можно вот так разом сравнить все параметры
+    assert booking.model_dump(exclude={"id"}) == booking_data.model_dump()
 
-    booking_edit_data = BookingAdd(
+    # обновить бронь
+    updated_date = date(year=2024, month=8, day=25)
+    update_booking_data = BookingAdd(
         user_id=user_id,
-        price=200,
         room_id=room_id,
-        date_from=date(year=2024, month=9, day=15),
-        date_to=date(year=2024, month=9, day=23),
+        date_from=date(year=2024, month=8, day=10),
+        date_to=updated_date,
+        price=100,
     )
+    await db.bookings.edit(update_booking_data, id=new_booking.id)
+    updated_booking = await db.bookings.one_or_none(id=new_booking.id)
+    assert updated_booking
+    assert updated_booking.id == new_booking.id
+    assert updated_booking.date_to == updated_date
 
-    await db.bookings.edit(booking_edit_data, id=new_booking.id)
-    edited_booking = await db.bookings.one_or_none(id=new_booking.id)
-
-    assert edited_booking
-    assert edited_booking.id == new_booking.id
-    assert edited_booking.price == booking_edit_data.price
-    assert edited_booking.date_from == booking_edit_data.date_from
-    assert edited_booking.date_to == booking_edit_data.date_to
-
+    # удалить бронь
     await db.bookings.delete(id=new_booking.id)
-
-    booking_data_delete = await db.bookings.one_or_none(id=new_booking.id)
-    assert not booking_data_delete
-
-    await db.commit()
+    booking = await db.bookings.one_or_none(id=new_booking.id)
+    assert not booking

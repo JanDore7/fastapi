@@ -8,17 +8,17 @@ from src.api.dependencies import UserIdDepends
 router = APIRouter(prefix="/bookings", tags=["Бронирования"])
 
 
-@router.get("/bookings", summary="Получение бронирования")
+@router.get("", summary="Получение бронирования")
 async def get_all_booking(db: DBDep):
     return await db.bookings.get_all()
 
 
-@router.get("/bookings/me", summary="Мои бронирования")
+@router.get("/me", summary="Мои бронирования")
 async def get_all_booking_me(user_id: UserIdDepends, db: DBDep):
     return await db.bookings.get_filtered(user_id=user_id)
 
 
-@router.post("/bookings", summary="Создание бронирования")
+@router.post("", summary="Создание бронирования")
 async def add_booking(
     db: DBDep,
     user_id: UserIdDepends,
@@ -26,6 +26,9 @@ async def add_booking(
 ):
     room = await db.rooms.one_or_none(id=booking_data.room_id)
     room_price = room.price
+    count = await db.bookings.add_bookings(booking_data)
+    if count == 0 or count is None:
+        return {"status": "ERROR", "data": "Нет свободных комнат"}
     _booking_data = BookingAdd(
         user_id=user_id, price=room_price, **booking_data.model_dump()
     )

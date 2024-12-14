@@ -73,7 +73,15 @@ async def test_add_and_get_bookings(
             "date_to": date_to,
         },
     )
+    # print( f"{response.json()=}" )
     res = response.json()
     assert isinstance(res, dict)
     assert res["status"] == "OK"
     assert "data" in res
+
+    responseMe = await authenticated_ac.get(
+        "/bookings/me",
+    )
+
+    amountMe = len(responseMe.json())
+    assert amountMe == amount

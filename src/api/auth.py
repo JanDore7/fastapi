@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Response
 from src.api.dependencies import UserIdDepends
 from src.repos.usres import UserRepository
 from src.database import async_session
-from src.schemas.users import UserRequestAdd, UserAdd
+from src.schemas.users import UserRequestAdd, UserAdd, User
 from src.services.auth import AuthService
 from src.api.dependencies import DBDep
 
@@ -19,14 +19,17 @@ async def register_user(
     # Используем зависимость см. src/api/dependencies.py
     db: DBDep,
 ):
-    # Хеширование пароля
-    hashed_password = AuthService().hash_password(data.password)
-    # Создание пользователя на основе pydantic-схемы
-    new_user = UserAdd(email=data.email, hashed_password=hashed_password)
-    # Добавление в БД
-    await db.users.add(new_user)
-    # Сохранение в БД
-    await db.commit()
+    try:
+        # Хеширование пароля
+        hashed_password = AuthService().hash_password(data.password)
+        # Создание пользователя на основе pydantic-схемы
+        new_user = UserAdd(email=data.email, hashed_password=hashed_password)
+        # Добавление в БД
+        await db.users.add(new_user)
+        # Сохранение в БД
+        await db.commit()
+    except:
+        raise HTTPException(status_code=400)
     return {"status": "OK"}
 
 
@@ -65,7 +68,9 @@ async def get_me(
 ):
     """Если пользователь аутентифицирован, то возвращаем его данные"""
     # Ищем пользователя в БД
-    return await db.users.one_or_none(id=user_id)
+    user = await db.users.one_or_none(id=user_id)
+    user = User(**user.model_dump())
+    return user
 
 
 @router.post("/logout", summary="Выход")

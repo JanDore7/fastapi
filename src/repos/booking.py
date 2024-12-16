@@ -1,18 +1,15 @@
 from datetime import date
 
 from fastapi import HTTPException
-from sqlalchemy import func
-from sqlalchemy import literal
 from sqlalchemy import select
 
-from src.models import RoomsOrm
+
 from src.repos.base import BaseRepository
 from src.models.bookings import BookingsOrm
 from src.repos.mapper.base import DataMapper
 from src.repos.mapper.mappers import BookingDataMapper
 from src.repos.utils import rooms_ids_for_booking
 from src.schemas.bookings import BookingAdd
-from src.schemas.bookings import BookingAddRequest
 
 
 class BookingRepository(BaseRepository):

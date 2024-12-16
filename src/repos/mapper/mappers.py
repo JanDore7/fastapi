@@ -6,7 +6,7 @@ from src.repos.mapper.base import DataMapper
 from src.schemas.bookings import Booking
 from src.schemas.hotels import Hotel
 from src.schemas.rooms import Room, RoomWithRelationship
-from src.schemas.users import User, UserWithPassword
+from src.schemas.users import UserWithPassword
 from src.models.facilities import FacilitiesOrm
 from src.schemas.facilities import Facilities
 

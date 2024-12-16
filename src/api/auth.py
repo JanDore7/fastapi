@@ -3,8 +3,6 @@ from sqlalchemy.exc import NoResultFound
 from fastapi import APIRouter, HTTPException, Response
 
 from src.api.dependencies import UserIdDepends
-from src.repos.usres import UserRepository
-from src.database import async_session
 from src.schemas.users import UserRequestAdd, UserAdd, User
 from src.services.auth import AuthService
 from src.api.dependencies import DBDep
@@ -28,7 +26,7 @@ async def register_user(
         await db.users.add(new_user)
         # Сохранение в БД
         await db.commit()
-    except:
+    except:  # noqa
         raise HTTPException(status_code=400)
     return {"status": "OK"}
 

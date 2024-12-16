@@ -1,6 +1,5 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter
 from src.api.dependencies import DBDep
-from src.database import engine
 from src.schemas.bookings import BookingAddRequest, BookingAdd
 from src.api.dependencies import UserIdDepends
 

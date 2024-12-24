@@ -1,6 +1,10 @@
+from typing import Sequence
+
 from sqlalchemy import select, insert, update, delete
+from sqlalchemy.exc import NoResultFound
 from pydantic import BaseModel
 from src.database import engine
+from src.exception import ObjectNotFoundException
 from src.repos.mapper.base import DataMapper
 
 
@@ -18,6 +22,15 @@ class BaseRepository:
 
     async def get_all(self, *args, **kwargs):
         return await self.get_filtered()
+
+    async def get_one(self, **filter_by):
+        query = select(self.model).filter_by(**filter_by)
+        result = await self.session.execute(query)
+        try:
+            model = result.scalar_one()
+        except NoResultFound:
+            raise ObjectNotFoundException
+        return self.mapper.map_to_schema(model)
 
     async def one_or_none(self, **kwargs):
         query = select(self.model).filter_by(**kwargs)
@@ -38,7 +51,7 @@ class BaseRepository:
         model = result.scalars().one()
         return self.mapper.map_to_schema(model)
 
-    async def add_bulk(self, data: list[BaseModel]) -> None:
+    async def add_bulk(self, data: Sequence[BaseModel]) -> None:
         add_stmt = (
             insert(self.model)
             .values([item.model_dump(exclude_unset=True) for item in data])

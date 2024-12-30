@@ -3,6 +3,8 @@ from datetime import date
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload, joinedload  # noqa
 
+from src.exception import ObjectNotFoundException
+from src.exception import check_date_correct
 from src.repos.base import BaseRepository
 from src.models.rooms import RoomsOrm
 from src.repos.mapper.mappers import RoomsDataMapper, RoomDataWithRelationshipMapper
@@ -15,7 +17,7 @@ class RoomsRepository(BaseRepository):
 
     async def get_filtered_by_time(self, hotel_id, date_from: date, date_to: date):
         rooms_ids_to_get = rooms_ids_for_booking(date_from, date_to, hotel_id)
-
+        check_date_correct(date_from, date_to)
         query = (
             select(self.model)
             .options(selectinload(self.model.facilities))
@@ -33,7 +35,7 @@ class RoomsRepository(BaseRepository):
         result = await self.session.execute(query)
         model = result.scalars().one_or_none()
         if model is None:
-            return None
+            raise ObjectNotFoundException
 
         query = select(self.model).options(selectinload(self.model.facilities))
         result = await self.session.execute(query)

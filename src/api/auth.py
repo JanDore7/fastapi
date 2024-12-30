@@ -3,6 +3,7 @@ from sqlalchemy.exc import NoResultFound
 from fastapi import APIRouter, HTTPException, Response
 
 from src.api.dependencies import UserIdDepends
+from src.exception import ObjectAlreadyExistsException
 from src.schemas.users import UserRequestAdd, UserAdd, User
 from src.services.auth import AuthService
 from src.api.dependencies import DBDep
@@ -24,11 +25,14 @@ async def register_user(
         new_user = UserAdd(email=data.email, hashed_password=hashed_password)
         # Добавление в БД
         await db.users.add(new_user)
+    except ObjectAlreadyExistsException:
+        raise HTTPException(status_code=409, detail="Пользователь уже существует")
+    try:
         # Сохранение в БД
         await db.commit()
-    except:  # noqa
-        raise HTTPException(status_code=400)
-    return {"status": "OK"}
+        return {"status": "OK"}
+    except Exception:
+        raise HTTPException(status_code=500)
 
 
 @router.post("/login", summary="Аутентификация")

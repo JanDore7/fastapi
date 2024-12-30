@@ -1,9 +1,8 @@
 from datetime import date
 
-from fastapi import HTTPException
 from sqlalchemy import select
 
-
+from src.exception import AllRoomsByBookedException
 from src.repos.base import BaseRepository
 from src.models.bookings import BookingsOrm
 from src.repos.mapper.base import DataMapper
@@ -33,6 +32,7 @@ class BookingRepository(BaseRepository):
         rooms_ids_to_book: list[int] = rooms_ids_to_book_res.scalars().all()
 
         if data.room_id not in rooms_ids_to_book:
-            raise HTTPException(status_code=500, detail="Нет свободны комнат")
+            raise AllRoomsByBookedException
+
         new_booking = await self.add(data)
         return new_booking

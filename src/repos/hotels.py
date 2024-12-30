@@ -1,6 +1,7 @@
 from datetime import date
 from typing import List
 
+from src.exception import check_date_correct
 from src.models.rooms import RoomsOrm
 from src.repos.base import BaseRepository
 from src.database import engine
@@ -30,6 +31,7 @@ class HotelRepository(BaseRepository):
     async def get_filtered_by_time(
         self, date_from: date, date_to: date, location, title, limit, offset
     ) -> List[mapper.schema]:
+        check_date_correct(date_from, date_to)
         rooms_ids_to_get = rooms_ids_for_booking(date_from=date_from, date_to=date_to)
         hotels_ids_to_get = (
             select(RoomsOrm.hotel_id)

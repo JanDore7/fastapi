@@ -1,9 +1,12 @@
 from typing import Sequence
 
+from asyncpg.exceptions import UniqueViolationError, ForeignKeyViolationError
 from sqlalchemy import select, insert, update, delete
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.exc import NoResultFound
 from pydantic import BaseModel
 from src.database import engine
+from src.exception import ObjectAlreadyExistsException
 from src.exception import ObjectNotFoundException
 from src.repos.mapper.base import DataMapper
 
@@ -37,7 +40,7 @@ class BaseRepository:
         result = await self.session.execute(query)
         model = result.scalars().one_or_none()
         if model is None:
-            return None
+            raise ObjectNotFoundException
         return self.mapper.map_to_schema(model)
 
     async def add(self, data: BaseModel) -> object:
@@ -46,10 +49,16 @@ class BaseRepository:
             .values(**data.model_dump(exclude_unset=True))
             .returning(self.model)
         )
-        print(add_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
-        result = await self.session.execute(add_stmt)
-        model = result.scalars().one()
-        return self.mapper.map_to_schema(model)
+        # print(add_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
+        try:
+            result = await self.session.execute(add_stmt)
+            model = result.scalars().one()
+            return self.mapper.map_to_schema(model)
+        except IntegrityError as ex:
+            if isinstance(ex.orig.__cause__, UniqueViolationError):
+                raise ObjectAlreadyExistsException from ex
+            elif isinstance(ex.orig.__cause__, ForeignKeyViolationError):
+                raise ObjectNotFoundException from ex
 
     async def add_bulk(self, data: Sequence[BaseModel]) -> None:
         add_stmt = (

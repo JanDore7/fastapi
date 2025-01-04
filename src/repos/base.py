@@ -1,3 +1,4 @@
+import logging
 from typing import Sequence
 
 from asyncpg.exceptions import UniqueViolationError, ForeignKeyViolationError
@@ -55,10 +56,19 @@ class BaseRepository:
             model = result.scalars().one()
             return self.mapper.map_to_schema(model)
         except IntegrityError as ex:
+            logging.error(
+                f"Не удалось добавить объект: {ex.orig.__cause__}, входные данные: {data}"
+            )
             if isinstance(ex.orig.__cause__, UniqueViolationError):
                 raise ObjectAlreadyExistsException from ex
             elif isinstance(ex.orig.__cause__, ForeignKeyViolationError):
+                logging.error(
+                    f"Не удалось добавить объект: {ex.orig.__cause__}, входные данные: {data}"
+                )
                 raise ObjectNotFoundException from ex
+            else:
+                logging.error(f"Не известная ошибка: тип ошибки {ex.orig.__cause__}")
+                raise ex
 
     async def add_bulk(self, data: Sequence[BaseModel]) -> None:
         add_stmt = (

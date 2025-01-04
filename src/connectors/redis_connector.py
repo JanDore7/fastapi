@@ -1,6 +1,6 @@
 import asyncio
 import redis.asyncio as redis
-
+import logging
 from redis.exceptions import RedisError
 
 from src.config import settings
@@ -19,8 +19,9 @@ class RedisManager:
         retries = 0
         while retries < self.max_retries:
             try:
+                logging.info("Подключаюсь к Redis...")
                 self.redis = await redis.from_url(self.redis_url)
-                print("Успешно подключено к Redis.")
+                logging.info("Успешно подключился к Redis")
                 return  # Выход из метода после успешного подключения
             except RedisError as e:
                 retries += 1

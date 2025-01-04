@@ -6,7 +6,7 @@ import uvicorn
 
 from fastapi_cache import FastAPICache
 from fastapi_cache.backends.redis import RedisBackend
-
+import logging
 
 import sys
 from pathlib import Path
@@ -14,6 +14,12 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
 from src.init import redis_manager
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)-8s %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 
 # from src.api.dependencies import get_db
 
@@ -44,6 +50,7 @@ async def lifespan(app: FastAPI):
     # Выполняется при старте приложения
     await redis_manager.connect()
     FastAPICache.init(RedisBackend(redis_manager.redis), prefix="fastapi-cache")
+    logging.info(f'fastapi-cache initialized')
     yield
     # Выполняется при завершении работы
     await redis_manager.close()

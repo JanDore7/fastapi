@@ -1,17 +1,17 @@
 import pytest
-
+from httpx import AsyncClient
 
 @pytest.mark.parametrize(
     "email, password, status_code",
     [
         ("k0t@pes.com", "1234", 200),
-        ("k0t@pes.com", "1234", 400),
+        ("k0t@pes.com", "1234", 409),
         ("k0t1@pes.com", "1235", 200),
         ("abcde", "1235", 422),
         ("abcde@abc", "1235", 422),
     ],
 )
-async def test_auth_flow(email: str, password: str, status_code: int, ac):
+async def test_auth_flow(email: str, password: str, status_code: int, ac: AsyncClient):
     # /register
     resp_register = await ac.post(
         "/auth/register",
@@ -49,3 +49,4 @@ async def test_auth_flow(email: str, password: str, status_code: int, ac):
     resp_logout = await ac.post("/auth/logout")
     assert resp_logout.status_code == 200
     assert "access_token" not in ac.cookies
+

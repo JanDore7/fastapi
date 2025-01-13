@@ -11,6 +11,7 @@ from src.exception import RoomsNotFoundHTTPException
 from src.schemas.facilities import RoomFacilityAdd
 from src.schemas.rooms import RoomsAdd, RoomsPatch, RoomsAddRequest, RoomsPatchRequest
 from src.api.dependencies import DBDep
+from src.services.rooms import RoomService
 
 router = APIRouter(prefix="/hotels", tags=["Комнаты"])
 
@@ -22,15 +23,13 @@ async def get_rooms(
     date_from: date = Query(example="2024-11-01"),
     date_to: date = Query(example="2024-11-07"),
 ):
-    return await db.rooms.get_filtered_by_time(
-        hotel_id=hotel_id, date_from=date_from, date_to=date_to
-    )
+    return RoomService(db).get_filtered_by_time(hotel_id, date_from, date_to)
 
 
 @router.get("/{hotel_id}/rooms/{room_id}", summary="Получение комнаты")
 async def get_room(hotel_id: int, room_id: int, db: DBDep):
     try:
-        return await db.rooms.one_or_none1(id=room_id, hotel_id=hotel_id)
+        return await RoomService(db).get_room(hotel_id, room_id)
     except ObjectNotFoundException:
         raise RoomsNotFoundHTTPException
 

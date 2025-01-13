@@ -41,9 +41,13 @@ class NameErrorHTTPException(HTTPException):
 
 class HotelNotFoundHTTPException(NameErrorHTTPException):
     status_code = 404
-    detail = "Отеля не найден"
+    detail = "Отель не найден"
 
 
 class RoomsNotFoundHTTPException(NameErrorHTTPException):
     status_code = 404
     detail = "Комната не найдена"
+
+
+class HotelNotFoundException(NabronirovalException):
+    detail: str = "Отель не найден"

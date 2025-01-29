@@ -332,5 +332,51 @@ async def delete_example():
 asyncio.run(delete_example())
 ```
 
+---
 
+**14. Класс для управления Redis**
+
+Создадим класс `RedisManager`, который позволит подключаться к Redis и управлять данными (добавлять, извлекать и удалять), а также задавать время жизни ключей:
+```aiignore
+class RedisManager:
+    def __init__(self, host='localhost', port=6379, db=0, ttl=30):
+        self.client = redis.Redis(host=host, port=port, db=db)
+        self.ttl = ttl
+    
+    async def set_value(self, key, value, ex=None):
+        """Устанавливает значение в Redis с временем жизни по умолчанию"""
+        if ex is None:
+            ex = self.ttl
+        await self.client.set(key, value, ex=ex)
+    
+    async def get_value(self, key):
+        """Получает значение по ключу"""
+        value = await self.client.get(key)
+        return value.decode() if value else None
+    
+    async def delete_value(self, key):
+        """Удаляет ключ из Redis"""
+        await self.client.delete(key)
+    
+    async def close(self):
+        """Закрывает соединение с Redis"""
+        await self.client.close()
+
+# Пример использования класса
+async def redis_manager_example():
+    redis_manager = RedisManager()
+    await redis_manager.set_value("user:1001", "Alice")
+    name = await redis_manager.get_value("user:1001")
+    print(f"Имя пользователя: {name}")
+    await redis_manager.delete_value("user:1001")
+    await redis_manager.close()
+
+asyncio.run(redis_manager_example())
+```
+
+Этот класс позволяет:
+- Устанавливать значения с управлением временем жизни (`set_value`).
+- Получать значения (`get_value`).
+- Удалять ключи (`delete_value`).
+- Закрывать соединение (`close`).
 

@@ -225,3 +225,112 @@ client.flushdb()
 ```aiignore
 client.flushall()
 ```
+
+**11. Асинхронное подключение к Redis**
+
+Для работы с Redis в асинхронном режиме в Python используется библиотека `redis` (модуль `redis.asyncio`). Установим её:
+```aiignore
+pip install redis
+```
+
+Пример асинхронного подключения:
+```aiignore
+import asyncio
+import redis.asyncio as redis
+
+async def main():
+    # Подключение к Redis
+    client = redis.Redis(host='localhost', port=6379, db=0)
+    
+    # Проверка соединения
+    try:
+        pong = await client.ping()
+        print("Успешное асинхронное подключение к Redis!", pong)
+    except Exception as e:
+        print("Ошибка подключения:", e)
+    
+    await client.close()
+
+asyncio.run(main())
+```
+
+Пояснение:
+- `redis.Redis(host='localhost', port=6379, db=0)` — создаёт асинхронное подключение к Redis.
+- `await client.ping()` — проверяет соединение.
+- `await client.close()` — закрывает подключение.
+
+---
+
+**12. Асинхронная работа с данными**
+
+Пример установки и получения значения:
+```aiignore
+async def redis_example():
+    client = redis.Redis(host='localhost', port=6379, db=0)
+    
+    # Установка значения
+    await client.set("async_key", "Hello, Async Redis!")
+    
+    # Получение значения
+    value = await client.get("async_key")
+    print(value.decode())
+    
+    await client.close()
+
+asyncio.run(redis_example())
+```
+
+Асинхронная работа со списками:
+```aiignore
+async def list_example():
+    client = redis.Redis(host='localhost', port=6379, db=0)
+    
+    # Добавление элементов в список
+    await client.rpush("tasks", "task1", "task2", "task3")
+    
+    # Извлечение элементов
+    task = await client.lpop("tasks")
+    print(task.decode())  # Выведет: task1
+    
+    await client.close()
+
+asyncio.run(list_example())
+```
+
+---
+
+**13. Асинхронные TTL и удаление ключей**
+
+Пример работы с TTL:
+```aiignore
+async def ttl_example():
+    client = redis.Redis(host='localhost', port=6379, db=0)
+    
+    # Установка ключа с TTL
+    await client.set("session_key", "abc123", ex=10)
+    
+    # Проверка оставшегося времени
+    ttl = await client.ttl("session_key")
+    print(f"Оставшееся время жизни: {ttl} секунд")
+    
+    await client.close()
+
+asyncio.run(ttl_example())
+```
+
+Асинхронное удаление ключей:
+```aiignore
+async def delete_example():
+    client = redis.Redis(host='localhost', port=6379, db=0)
+    
+    # Удаление ключа
+    await client.set("temp_key", "value")
+    await client.delete("temp_key")
+    
+    await client.close()
+
+asyncio.run(delete_example())
+```
+
+
+

@@ -1,5 +1,6 @@
 services:
-  db:
+  db_service:
+    container_name: db
     image: postgres:15
     env_file:
       - .env
@@ -9,25 +10,72 @@ services:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_HOST: ${DB_HOST}
     ports:
-      - ${DB_PORT}:5432
+      - "${DB_PORT}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     restart: always
+    networks:
+      - app_network
 
-  db_test:
-    image: postgres:15
-    env_file:
-      - .env-test
-    environment:
-      POSTGRES_USER: ${DB_USER_TEST}
-      POSTGRES_PASSWORD: ${DB_PASSWORD_TEST}
-      POSTGRES_DB: ${DB_NAME_TEST}
-      POSTGRES_HOST: ${DB_HOST_TEST}
+  redis_service:
+    container_name: redis
+    image: redis:7-alpine
     ports:
-      - 5433:5432
-    volumes:
-      - postgres-data-test:/var/lib/postgresql/data
+      - "6380:6379"
+    restart: always
+    networks:
+      - app_network
+
+  my_app_service:
+    container_name: my_app
+    build:
+      context: .
+    env_file:
+      - .env
+    ports:
+      - "7777:8000"
+    restart: always
+    networks:
+      - app_network
+    depends_on:
+      - db_service
+      - redis_service
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8000/health"]
+
+  booking_celery_worker:
+    container_name: celery_worker
+    build:
+      context: .
+    networks:
+      - app_network
+    env_file:
+      - .env
+    command: "celery --app=src.tasks.celery_app:celery_app_instance worker -l INFO"
+    depends_on:
+      - redis_service
+
+
+  booking_celery_beat:
+    container_name: celery_beat
+    build:
+      context: .
+    networks:
+      - app_network
+    env_file:
+      - .env
+    command: "celery --app=src.tasks.celery_app:celery_app_instance beat -l INFO"
+    depends_on:
+      - redis_service
+
 
 volumes:
   postgres-data:
-  postgres-data-test:
+
+networks:
+  app_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.101.0/24
+

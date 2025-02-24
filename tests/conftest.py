@@ -21,6 +21,7 @@ from src.utils.db_manager import DBManager
 
 @pytest.fixture(scope="session", autouse=True)
 def check_test_mode():
+    print(f"Current MODE: {settings.MODE}")
     assert settings.MODE == "TEST"
 
 

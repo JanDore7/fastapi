@@ -7,16 +7,19 @@ from src.exception import ObjectNotFoundException
 from src.schemas.bookings import BookingAddRequest, BookingAdd
 from src.api.dependencies import UserIdDepends
 from src.schemas.rooms import Room
+from fastapi_cache.decorator import cache
 
 router = APIRouter(prefix="/bookings", tags=["Бронирования"])
 
 
 @router.get("", summary="Получение бронирования")
+@cache(expire=50)
 async def get_all_booking(db: DBDep):
     return await db.bookings.get_all()
 
 
 @router.get("/me", summary="Мои бронирования")
+@cache(expire=100)
 async def get_all_booking_me(user_id: UserIdDepends, db: DBDep):
     return await db.bookings.get_filtered(user_id=user_id)
 
@@ -28,9 +31,9 @@ async def add_booking(
     booking_data: BookingAddRequest,
 ):
     try:
-        room: Room | None = await db.rooms.one_or_none(id=booking_data.room_id)
+        room: Room = await db.rooms.get_one(id=booking_data.room_id)
     except ObjectNotFoundException:
-        raise HTTPException(status_code=404, detail="Номер не найден")
+        raise HTTPException(status_code=404, detail=f"Номер не найден ")
     hotel = await db.hotels.get_one(id=room.hotel_id)
     room_price = room.price
     _booking_data = BookingAdd(

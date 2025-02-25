@@ -29,7 +29,6 @@ from src.api.rooms import router as router_rooms
 from src.api.bookings import router as router_bookings
 from src.api.facilities import router as router_facilities
 from src.api.images import router as router_images
-from src.api.docker_test_up import router as router_test
 
 
 # async def send_emails_bookings_today_checkin():
@@ -66,7 +65,6 @@ app.include_router(router_bookings)
 app.include_router(router_facilities)
 app.include_router(router_images)
 
-app.include_router(router_test)
 
 
 @app.get("/docs", include_in_schema=False)

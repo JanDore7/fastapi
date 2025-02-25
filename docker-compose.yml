@@ -1,3 +1,12 @@
+x-my_app_image: &app-image
+  build:
+    context: .
+  env_file:
+    - .env
+  networks:
+    - app_network
+  restart: always
+
 services:
   db_service:
     container_name: db
@@ -27,47 +36,27 @@ services:
       - app_network
 
   my_app_service:
+    <<: *app-image
     container_name: my_app
-    build:
-      context: .
-    env_file:
-      - .env
     ports:
       - "7777:8000"
-    restart: always
-    networks:
-      - app_network
     depends_on:
       - db_service
       - redis_service
-    healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:8000/health"]
 
   booking_celery_worker:
+    <<: *app-image
     container_name: celery_worker
-    build:
-      context: .
-    networks:
-      - app_network
-    env_file:
-      - .env
     command: "celery --app=src.tasks.celery_app:celery_app_instance worker -l INFO"
     depends_on:
       - redis_service
 
-
   booking_celery_beat:
+    <<: *app-image
     container_name: celery_beat
-    build:
-      context: .
-    networks:
-      - app_network
-    env_file:
-      - .env
     command: "celery --app=src.tasks.celery_app:celery_app_instance beat -l INFO"
     depends_on:
       - redis_service
-
 
 volumes:
   postgres-data:
@@ -78,4 +67,3 @@ networks:
     ipam:
       config:
         - subnet: 192.168.101.0/24
-
